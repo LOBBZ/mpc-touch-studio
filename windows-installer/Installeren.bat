@@ -32,7 +32,7 @@ if defined APP (
   echo   Klaar! MPC Touch Studio wordt gestart.
   echo   Je vindt de app ook op je bureaublad en in het Startmenu.
   start "" "%APP%"
-  timeout /t 4 >nul
+  ping -n 5 127.0.0.1 >nul
 ) else (
   echo   Klaar! Start MPC Touch Studio via het bureaublad of het Startmenu.
   echo.

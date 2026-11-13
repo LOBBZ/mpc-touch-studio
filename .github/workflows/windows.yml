@@ -56,12 +56,13 @@ jobs:
           Write-Host "Geinstalleerd in: $found"
           Get-ChildItem "$env:USERPROFILE\Desktop" -Filter *.lnk | ForEach-Object { Write-Host "Snelkoppeling: $($_.Name)" }
           if (-not $found) { Get-ChildItem "$env:LOCALAPPDATA\Programs" | ForEach-Object { Write-Host $_.FullName }; throw "App niet gevonden na installatie" }
-          Start-Sleep -Seconds 8
           $p = Get-Process -Name "MPC Touch Studio" -ErrorAction SilentlyContinue
           Write-Host "App draait: $([bool]$p)"
-          $r = try { Invoke-RestMethod http://127.0.0.1:8765/vst/status -TimeoutSec 5 } catch { $null }
-          Write-Host "Meegestarte bridge: $($r | ConvertTo-Json -Compress)"
+          $r = $null
+          for ($i = 0; $i -lt 30 -and -not $r; $i++) { Start-Sleep -Seconds 2; $r = try { Invoke-RestMethod http://127.0.0.1:8765/vst/status -TimeoutSec 3 } catch { $null } }
+          Write-Host "Meegestarte bridge na $($i*2) s: $($r | ConvertTo-Json -Compress)"
           Get-Process -Name "MPC Touch Studio","MPC-Touch-Bridge" -ErrorAction SilentlyContinue | Stop-Process -Force
+          exit 0
       - name: Bestanden bewaren
         uses: actions/upload-artifact@v4
         with:
