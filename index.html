@@ -117,7 +117,7 @@
       <div class="song-time"><b id="song-pos">0:00.0</b><span class="muted"> / </span><span id="song-len">0:00</span><span class="badge" id="song-barpos">MAAT 1.1</span></div>
       <div class="btn-row" style="margin:0"><button class="btn small" id="song-home" title="Naar begin">⏮</button><button class="btn small" id="zoom-out" aria-label="Uitzoomen">−</button><button class="btn small" id="zoom-in" aria-label="Inzoomen">+</button><button class="btn small" id="add-drums">+ Drums<span class="lbl">poor</span></button><button class="btn small" id="add-inst">+ Inst<span class="lbl">rumentspoor</span></button><button class="btn small" id="add-audio">+ 🎤<span class="lbl"> Audiospoor</span></button></div>
     </div>
-    <div class="pl-tools">
+    <div class="pl-tools"><button class="btn small pl-full-btn" id="pl-full" title="FL-weergave: playlist op volledig scherm">⛶<span> FL-weergave</span></button>
       <div class="chipset" id="pl-tool">
         <button class="chip active" data-tool="select" title="Selecteren en verplaatsen">⬚ <span>Selecteer</span></button>
         <button class="chip" data-tool="draw" title="Tekenen: clip plaatsen">✏️ <span>Teken</span></button>
@@ -127,7 +127,7 @@
       </div>
       <select id="pl-src" class="btn small" aria-label="Wat ✏️ plaatst"><option value="p0">✏️ Pattern A</option><option value="p1">✏️ Pattern B</option><option value="p2">✏️ Pattern C</option><option value="p3">✏️ Pattern D</option><option value="n">✏️ Lege notenclip</option></select>
       <select id="pl-snap" class="btn small" aria-label="Snap"><option value="bar">Snap: maat</option><option value="beat">Snap: tel</option><option value="1/16">Snap: 1/16</option><option value="off">Snap: uit</option></select>
-      <button class="btn small" id="pl-dup" title="Dupliceren (Ctrl/⌘+B)">⧉ Dupliceer</button><button class="btn small danger" id="pl-del" title="Verwijderen (Delete)">🗑</button>
+      <button class="btn small" id="pl-undo" title="Ongedaan maken">↶</button><button class="btn small" id="pl-redo" title="Opnieuw">↷</button><button class="btn small" id="pl-dup" title="Dupliceren (Ctrl/⌘+B)">⧉ Dupliceer</button><button class="btn small danger" id="pl-del" title="Verwijderen (Delete)">🗑</button>
     </div>
     <p class="hint pl-hint" id="pl-hint"></p>
     <div class="tl" id="tl">
@@ -138,14 +138,29 @@
     <div class="btn-row"><button class="btn small" id="song-undo" disabled>↶ Ongedaan</button><button class="btn small" id="song-redo" disabled>↷ Opnieuw</button><button class="btn small" id="track-clear">Spoor leegmaken</button><button class="btn small" id="song-clear">Song wissen</button><button class="btn small" id="song-midi">↓ Song als MIDI</button><button class="btn small" id="song-wav">↓ Song als WAV</button><select class="btn small wav-fmt" aria-label="WAV-formaat"><option value="24-44100">WAV 24-bit · 44,1 kHz</option><option value="24-48000">WAV 24-bit · 48 kHz</option><option value="16-44100">WAV 16-bit · 44,1 kHz</option></select></div>
     <details class="panel sub" id="ed-panel" open><summary><b>Editor</b> <span class="muted" id="ed-title">— kies een spoor</span></summary>
       <div class="ed-tools">
-        <div class="chipset" id="ed-tool"><button class="chip active" data-tool="draw" title="Tik = noot plaatsen / verwijderen">✏️ Teken</button><button class="chip" data-tool="select" title="Tik = selecteren, sleep met muis = kader">⬚ Selecteer</button></div>
+        <div class="chipset ed-toolset" id="ed-tool"><button class="chip active" data-tool="draw" title="Teken (P): tik = noot, tik op noot = weg">✏️<span> Teken</span></button><button class="chip" data-tool="paint" title="Penseel (B): sleep = noten schilderen">🖌️<span> Penseel</span></button><button class="chip" data-tool="select" title="Selecteer (E)">⬚<span> Selecteer</span></button><button class="chip" data-tool="del" title="Wis (D): tik of veeg over noten">🧽<span> Wis</span></button><button class="chip" data-tool="mute" title="Demp (T): noten aan/uit">🔇<span> Demp</span></button><button class="chip" data-tool="slice" title="Knip (C): tik op een noot om te knippen">✂️<span> Knip</span></button><button class="chip" data-tool="stamp" title="Stempel (S): plaats een akkoord of toonladder">🎹<span> Stempel</span></button><button class="chip" data-tool="play" title="Speel (Y): veeg om te luisteren">🔊<span> Speel</span></button></div>
         <select id="ed-grid" class="btn small" aria-label="Raster"><option value="1/4">1/4</option><option value="1/8">1/8</option><option value="1/8T">1/8T</option><option value="1/16">1/16</option><option value="1/16T">1/16T</option><option value="1/32">1/32</option><option value="off">vrij</option></select>
         <button class="btn small" id="ed-zout" aria-label="Uitzoomen">−</button><button class="btn small" id="ed-zin" aria-label="Inzoomen">+</button>
         <span class="ed-sep"></span>
         <span class="ed-notes-only ed-grp"><button class="btn small" id="ed-all">Alles</button><button class="btn small" id="ed-copy">Kopieer</button><button class="btn small" id="ed-paste" title="Plakken op de startpositie (gele driehoek)">Plak</button><button class="btn small" id="ed-dup">Dupliceer</button><button class="btn small danger" id="ed-del">Verwijder</button>
-        <button class="btn small" id="ed-quant">Quantize</button><button class="btn small" id="ed-down" title="Omlaag (⇧ = octaaf)">▼</button><button class="btn small" id="ed-up" title="Omhoog (⇧ = octaaf)">▲</button>
+        <button class="btn small" id="ed-down" title="Omlaag (⇧ = octaaf)">▼</button><button class="btn small" id="ed-up" title="Omhoog (⇧ = octaaf)">▲</button>
         <label class="ed-vel">Vel <input type="range" id="ed-vel" min="1" max="127" value="100"><output id="ed-vel-val">—</output></label></span>
         <span id="ed-auto-bar" class="ed-grp" hidden>📈 <select id="ed-auto-target" class="btn small" aria-label="Wat deze automation bestuurt"></select><select id="ed-auto-mode" class="btn small" aria-label="Touch FX-effect"></select><span class="chipset" id="ed-auto-lane"><button class="chip active" data-lane="1">X</button><button class="chip" data-lane="2">Y</button></span><span class="hint" style="margin:0">✏️ tik = punt erbij · tik op punt = weg · sleep = verplaatsen</span></span>
+      </div>
+      <div class="ed-tools pr-bar" id="pr-bar" hidden>
+        <span class="pr-inst-only ed-grp">🎹 <select id="ed-inst" class="btn small" aria-label="Instrument van dit spoor"></select></span>
+        <select id="ed-tools-menu" class="btn small" aria-label="Tools"><option value="">🔧 Tools…</option>
+          <optgroup label="Timing"><option value="quantize">Quantize</option><option value="legato">Legato (Ctrl+L)</option><option value="humanize">Humanize</option><option value="flipH">Flip horizontaal</option></optgroup>
+          <optgroup label="Akkoorden &amp; noten"><option value="arp">Arpeggio</option><option value="strum">Strum</option><option value="chop">Chop (in rasterstukjes)</option><option value="glue">Glue (samenvoegen)</option><option value="flipV">Flip verticaal</option><option value="toScale">Naar toonladder</option><option value="octUp">Octaaf erbij ↑</option><option value="octDown">Octaaf erbij ↓</option><option value="dedupe">Dubbele noten weg</option></optgroup>
+          <optgroup label="Lengte"><option value="lenGrid">Lengte = raster</option><option value="lenHalf">Lengte ½</option><option value="lenDouble">Lengte ×2</option></optgroup>
+          <optgroup label="Velocity"><option value="randVel">Willekeurig</option><option value="cresc">Crescendo</option><option value="decresc">Decrescendo</option><option value="vel100">Alles 100</option></optgroup>
+          <optgroup label="Selectie"><option value="invertSel">Selectie omkeren</option><option value="unmute">Demping opheffen</option></optgroup></select>
+        <span class="ed-grp"><button class="btn small" id="ed-quant" title="Quantize (Q)">Quantize</button><select id="ed-qstr" class="btn small" aria-label="Quantize-sterkte"><option value="100">100%</option><option value="75">75%</option><option value="50">50%</option><option value="25">25%</option></select><label class="muted small-l"><input type="checkbox" id="ed-qends"> eindes</label></span>
+        <span class="pr-inst-only ed-grp">Arp <select id="ed-arp" class="btn small"><option value="up">↑ omhoog</option><option value="down">↓ omlaag</option><option value="updown">↕ op-neer</option><option value="random">🎲 willekeurig</option></select></span>
+        <span class="pr-inst-only ed-grp">Stempel <select id="ed-stamp" class="btn small"></select></span>
+        <button class="btn small" id="ed-len-btn" title="Lengte van nieuwe noten">Lengte <b id="ed-len">1/16</b></button>
+        <span class="chipset" id="pr-toggles"><button class="chip" data-opt="edVelLane">Velocity</button><button class="chip pr-inst-only" data-opt="edScaleHi">🎼 Toonladder</button></span>
+        <span class="pr-inst-only ed-grp">↕ <button class="btn small icon" id="ed-rh-out">−</button><button class="btn small icon" id="ed-rh-in">+</button></span>
       </div>
       <div class="ed-wrap" id="ed-scroll"><div id="ed-spacer"></div><canvas id="ed-canvas"></canvas></div>
       <p class="hint" id="ed-hint">Teken: tik op een leeg vak = noot, tik op een noot = weg. Sleep een noot om te verplaatsen, sleep de rechterrand om de lengte te veranderen. Sleep op een lege plek om te scrollen.</p>
@@ -155,17 +170,39 @@
     <p class="hint">Zet de modus op <b>Song</b>, arm een spoor met <b>R</b> en druk op ● Rec en ▶ Play. Er is geen lengtelimiet: neem 7 minuten of langer op. Pads gaan naar het eerste gearmde drumspoor, het klavier (en je MIDI-keyboard) naar het eerste gearmde instrumentspoor. Nogmaals opnemen = overdub. Tik op de liniaal om de startpositie te kiezen.</p>
   </div></section>
 
-  <section id="view-keys" class="page"><div class="keys-layout"><div class="panel">
-    <div class="panel-head"><h2>Touch pianoklavier</h2><span id="note-readout" class="badge">C4</span></div>
-    <div class="seq-actions"><div class="chipset" id="instrument-picks"><button class="chip active" data-instrument="piano">Piano</button><button class="chip" data-instrument="bass">Bass</button><button class="chip" data-instrument="guitar">Gitaar</button><button class="chip" data-instrument="synth">Synth</button></div><span class="spacer"></span><button class="btn small" id="octave-down">− Oct</button><strong id="octave-label">C3–C5</strong><button class="btn small" id="octave-up">+ Oct</button></div>
+  <section id="view-keys" class="page"><div class="keys-layout2">
+  <div class="panel kb-panel">
+    <div class="panel-head"><h2>Klavier</h2><span class="badge" id="th-now">—</span><span id="note-readout" class="badge">C4</span></div>
+    <div class="inst-row"><span class="muted">Instrument</span><div class="chipset inst-scroll" id="instrument-picks"></div></div>
+    <div class="seq-actions kb-bar"><button class="btn small" id="octave-down">◀ Oct</button><strong id="octave-label">C3–C5</strong><button class="btn small" id="octave-up">Oct ▶</button>
+      <span class="kb-zoom"><button class="btn small icon" id="kb-zout" aria-label="Smallere toetsen">−</button><span class="muted">toets <b id="kb-zoom-val">44</b></span><button class="btn small icon" id="kb-zin" aria-label="Bredere toetsen">+</button></span>
+      <span class="chipset" id="kb-opts"><button class="chip" data-opt="kbShowScale">🎼 Toonladder tonen</button><button class="chip" data-opt="kbLock">🔒 Alleen toonladder</button><button class="chip" data-opt="kbChordMode">🎹 Akkoordmodus</button></span></div>
+    <canvas id="kb-map" class="kb-map" aria-label="Overzicht van het klavier: sleep om te scrollen"></canvas>
     <div class="key-area" id="key-area"><div id="keyboard" class="keyboard"></div></div>
-    <p class="hint">Glijd met je vinger over de toetsen voor glissando. Noten gaan als MIDI naar je DAW (FL Studio, Ableton, Logic) zodra er een verbinding is; de ingebouwde klanken werken altijd.</p>
+    <p class="hint">88 toetsen (A0–C8). Scroll met de strook erboven of met ◀ ▶. Glijd over de toetsen voor glissando. Oranje = in de toonladder, groen = grondtoon.</p>
     <div class="kbd-hint desktop-only">Toetsenbord: <kbd>A</kbd><kbd>W</kbd><kbd>S</kbd><kbd>E</kbd><kbd>D</kbd><kbd>F</kbd><kbd>T</kbd><kbd>G</kbd><kbd>Y</kbd><kbd>H</kbd><kbd>U</kbd><kbd>J</kbd><kbd>K</kbd> = C tot C · <kbd>Z</kbd>/<kbd>X</kbd> = octaaf</div>
-    </div><div class="side-col"><div class="panel"><div class="panel-head"><h2>Akkoorden</h2><span class="badge">Soul · Jazz · R&B</span></div><div id="chords" class="chords"></div><p class="hint">Houd ingedrukt om vast te houden. Grondtoon C; gebruik het octaaf voor hoger/lager. In gitaarmodus wordt het akkoord gestrumd.</p></div>
+  </div>
+  <div class="panel th-panel">
+    <div class="panel-head"><h2>Akkoorden &amp; toonladders</h2><span class="badge" id="th-key">C majeur</span></div>
+    <div class="th-row"><span class="muted">Grondtoon</span><div class="chipset" id="th-root"></div></div>
+    <div class="th-row th-sel">
+      <label>Toonladder <select id="th-scale" class="btn small"></select></label>
+      <label>Voicing <select id="th-voicing" class="btn small"></select></label>
+      <label>Duur <select id="th-dur" class="btn small"></select></label>
+    </div>
+    <div class="th-row"><span class="muted" id="th-notes"></span></div>
+    <div class="th-row"><div class="chipset" id="th-groups"><button class="chip" data-grp="std">Standaard</button><button class="chip" data-grp="jazz">Jazz</button><button class="chip" data-grp="key">In toonsoort</button><button class="chip" data-grp="prog">Progressies</button></div></div>
+    <div id="chords" class="chords2"></div>
+    <div class="th-row th-scale-play"><b>Toonladder spelen</b>
+      <select id="th-dir" class="btn small"><option value="up">Omhoog</option><option value="down">Omlaag</option><option value="updown">Op en neer</option></select>
+      <select id="th-oct" class="btn small"><option value="1">1 octaaf</option><option value="2">2 octaven</option><option value="3">3 octaven</option></select>
+      <button class="btn small good" id="th-play">▶ Speel</button><button class="btn small" id="th-stop">■</button></div>
+    <div class="th-row th-step"><button class="chip" id="th-step">✚ Stap-invoer naar piano roll</button><button class="btn small" id="th-back" title="Cursor één duur terug">⟲ Terug</button><span class="muted" id="th-pos"></span></div>
+    <p class="hint">Tik = akkoord in de gekozen duur, vasthouden = laten klinken. Met <b>Stap-invoer</b> komt elk akkoord, elke progressie of toonladder direct in de piano roll, achter elkaar in de gekozen duur. De octaaf volgt het klavier.</p>
+  </div>
     <div class="panel ui-panel"><div class="panel-head"><h2>Eigen instrumenten</h2><label class="btn small good file-btn">＋ Nieuw uit samples<input id="ui-new" type="file" multiple accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aif,.aiff,.caf" hidden></label></div>
       <div id="ui-list"></div>
       <p class="hint">Neem een of meer noten op van je eigen bas, piano, gitaar of synth. De app speelt ze over het hele klavier. Zet de noot in de bestandsnaam, bijv. <code>Bas_E1.wav</code> of <code>Rhodes C3.wav</code>, of kies hem hieronder. Meer samples (bijv. elke kwint of octaaf) klinken natuurlijker.</p>
-    </div></div>
   </div></section>
 
   <section id="view-mixer" class="page"><div class="panel">
@@ -252,13 +289,18 @@
   <div class="tfx-foot"><span>MPC / controller:</span><button class="btn small" id="tfx-learn-x">X leren</button><button class="btn small" id="tfx-learn-y">Y leren</button><span class="muted" id="tfx-cc"></span></div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="js/instruments.js"></script>
 <script src="js/app.js"></script>
 <script src="js/sampler.js"></script>
 <script src="js/fx.js"></script>
 <script src="js/mixer.js"></script>
 <script src="js/song.js"></script>
+<script src="js/theory.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/editor.js"></script>
+<script src="js/keys.js"></script>
+<script src="js/proll.js"></script>
+<script src="js/plview.js"></script>
 <script src="js/connect.js"></script>
 <script src="js/touchfx.js"></script>
 <script src="js/automation.js"></script>

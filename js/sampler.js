@@ -5,14 +5,13 @@
    Eigen instrumenten heten 'u:<id>' (in state.instrument en spoor.inst).
    ===================================================================== */
 const userInsts=new Map(); // id → {id,name,mode,release,zones:[{root,name,buf,bytes}]}
-const BUILTIN_INSTS=[['piano','Piano'],['bass','Bass'],['guitar','Gitaar'],['synth','Synth']];
 const validInst=v=>BUILTIN_INSTS.some(([k])=>k===v)||/^u:\w+$/.test(v||'');
 function instLabel(v){const b=BUILTIN_INSTS.find(([k])=>k===v);if(b)return b[1];const u=userInsts.get(String(v).slice(2));return u?u.name:'(ontbreekt)'}
 function instOptionsHTML(){const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  return BUILTIN_INSTS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')+[...userInsts.values()].map(u=>`<option value="u:${u.id}">★ ${esc(u.name)}</option>`).join('')}
 function renderInstChips(){const box=$('#instrument-picks');if(!box)return;box.innerHTML='';
  const add=(val,label)=>{const b=document.createElement('button');b.className='chip'+(state.instrument===val?' active':'');b.dataset.instrument=val;b.textContent=label;
-  b.onclick=()=>{state.instrument=val;$$('#instrument-picks .chip').forEach(x=>x.classList.toggle('active',x===b));renderUserInsts();save()};box.append(b)};
+  b.onclick=()=>{state.instrument=val;$$('#instrument-picks .chip').forEach(x=>x.classList.toggle('active',x===b));renderUserInsts();save();const tr=typeof recInstTrack==='function'&&recInstTrack();if(tr&&tr.inst!==val){tr.inst=val;if(typeof saveSongSoon==='function'){saveSongSoon();renderHeads()}}const ac=ensureAudio();if(ac){const v=makeVoice(ac,masterNode,60,96,ac.currentTime+.01,val);v.release(ac.currentTime+.45)}};box.append(b)};
  for(const [k,l] of BUILTIN_INSTS)add(k,l);for(const u of userInsts.values())add('u:'+u.id,'★ '+u.name)}
 
 /* Noot uit bestandsnaam: "Bas_E1", "Rhodes C#3", "piano-Ab4" (C4 = 60) */
