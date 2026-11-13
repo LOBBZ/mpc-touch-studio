@@ -70,7 +70,7 @@ function rebuildFlat(t){const out=[];
  for(const c of t.clips){if(c.mute||c.kind==='auto')continue;
   if(c.kind==='audio'){out.push([c.start,2,c.clipId,c.gain??1,c.off||0,c.len]);continue}
   const src=c.kind==='pattern'?patternEvents(c.pat):c.events,L=clipSrcLen(c);if(!src.length)continue;
-  for(let base=-((c.off||0)%L);base<c.len;base+=L)for(const e of src){if(e[0]>=L)continue;const rel=base+e[0];if(rel<0||rel>=c.len)continue;const n=e.slice();n[0]=c.start+rel;if(n[1]===1)n[4]=Math.max(10,Math.min(n[4],c.len-rel));out.push(n)}}
+  for(let base=-((c.off||0)%L);base<c.len;base+=L)for(const e of src){if(e[0]>=L)continue;const rel=base+e[0];if(rel<0||rel>=c.len)continue;if(e[e[1]===1?5:6])continue;const n=e.slice();n[0]=c.start+rel;if(n[1]===1)n[4]=Math.max(10,Math.min(n[4],c.len-rel));out.push(n)}}
  out.sort((a,b)=>a[0]-b[0]);t.events=out;
  if(playing&&songAnchor)songIdx.set(t.id,lowerBound(out,songHorizonTick))}
 function songPatternsChanged(){let any=false;for(const t of song.tracks)if(t.clips.some(c=>c.kind==='pattern')){rebuildFlat(t);any=true}if(any&&currentTab==='song')drawTimeline()}
@@ -260,7 +260,7 @@ function plDuplicate(){if(!PL.sel.size){toast('Selecteer eerst clips (⬚)');ret
 function plDelete(){if(!PL.sel.size){toast('Selecteer eerst clips (⬚), of veeg ze weg met 🧽');return}pushHistory();
  for(const t of song.tracks){const had=t.clips.some(c=>PL.sel.has(c));if(had){for(const c of [...t.clips])if(PL.sel.has(c))removeClip(t,c);rebuildFlat(t)}}PL.sel.clear();saveSongSoon();drawTimeline();gcClipsLater()}
 
-tl.canvas.addEventListener('pointerdown',ev=>{ensureAudio();const {x,y}=tlPos(ev);
+tl.canvas.addEventListener('pointerdown',ev=>{if(typeof plPinch!=='undefined'&&plPinch.active())return;ensureAudio();const {x,y}=tlPos(ev);
  if(inRuler(y)){setLocate(Math.round(tlTick(x)/PPQ)*PPQ);return}
  const hit=hitClip(x,y);try{tl.canvas.setPointerCapture(ev.pointerId)}catch(e){}
  PL.drag={id:ev.pointerId,x0:x,y0:y,x1:x,y1:y,cy:ev.clientY,sl:tl.scroll.scrollLeft,st:tl.v.scrollTop,hit,moved:false,mode:null,mouse:ev.pointerType==='mouse',shift:ev.shiftKey||ev.metaKey||ev.ctrlKey,erased:new Set(),trail:[[x,y]]};

@@ -100,6 +100,21 @@ Dubbeltik een notenclip om hem te openen.
 - **Per spoor:** EQ (laag/mid/hoog), compressor, reverb- en delay-send en pan.
 - **Master:** reverb en een delay die meeloopt met de BPM.
 
+## Telefoon: FL-weergave van de playlist
+Op een telefoon of tablet opent de Playlist automatisch in **FL-weergave**: de playlist vult het scherm, één scrollbare werkbalk, compacte sporen. Knijp met **twee vingers** om in te zoomen. Dubbeltik een clip: de piano roll schuift van onderen in beeld (in liggende stand op volledig scherm). Knop ⛶/⤡ wisselt tussen FL-weergave en normaal.
+
+## Piano: 88 toetsen, 15 instrumenten, akkoorden en toonladders
+- **Instrumenten**: Piano, E-piano (Rhodes), Orgel, Klokjes, Bass, 808 Sub, Gitaar, Pluck, Strijkers, Pad, Koor, Brass, Fluit, Synth, Lead + je eigen sampler-instrumenten. Wisselen in de Piano-tab of in de piano roll (geldt voor het gearmde spoor).
+- **Klavier** A0–C8, scrollen met de strook erboven of ◀ ▶, toetsbreedte − / +. *Toonladder tonen*, *Alleen toonladder* (nooit een verkeerde noot) en *Akkoordmodus* (elke toets = akkoord).
+- **Akkoorden**: 17 standaard en 31 jazz (maj9, m11, 13♯11, 7alt, So What …), op elke grondtoon, met voicings (omkeringen, drop 2/3, shell, rootless A/B, gespreid). *In toonsoort* = diatonische drie- en vierklanken; *Progressies* = ii–V–I, turnaround, neo-soul, 12-bar blues …
+- **Toonladders**: 42, waaronder alle modi, melodisch mineur-modi (altered, lydisch dominant), bebop, blues, pentatonisch, symmetrisch en wereldtoonladders.
+- **Duur** 1/32 tot 4 maten. Met **Stap-invoer** gaat elk akkoord, elke progressie of toonladder achter elkaar de piano roll in.
+
+## Piano roll (FL-tools)
+Tools: ✏️ Teken (P) · 🖌️ Penseel (B) · ⬚ Selecteer (E) · 🧽 Wis (D) · 🔇 Demp (T) · ✂️ Knip (C) · 🎹 Stempel (S, akkoord of toonladder) · 🔊 Speel (Y).
+Tools-menu: Quantize (sterkte + eindes, Q), Legato (Ctrl+L), Humanize, Arpeggio (↑ ↓ ↕ 🎲), Strum, Chop, Glue, Flip horizontaal/verticaal, Naar toonladder, Octaaf erbij, Lengte = raster / ½ / ×2, Velocity willekeurig / crescendo / decrescendo / 100, Dubbele noten weg, Selectie omkeren.
+Velocity-strook onderin (sleep om te tekenen), toonladder-markering, verticale zoom en knijp-zoom; nieuwe noten krijgen de laatst gebruikte lengte (zoals in FL).
+
 ## Zoals FL Studio: Channel Rack, Mixer, Automation en Browser
 
 - **Channel Rack + 999 patronen** — tab *Channel Rack*. Kies het patroon met ◀ ▶ bovenin (1–999), ✎ = hernoemen. Elke rij heeft mute-LED, pan en volume. In de Playlist kies je *Pattern N* en tekent het als clip.

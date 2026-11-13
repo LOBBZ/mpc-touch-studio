@@ -23,7 +23,7 @@ const NAME_TO_NOTE=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','
 const noteLabel=n=>NAME_TO_NOTE[n%12]+(Math.floor(n/12)-1);
 
 /* ---------- Status & opslag ---------- */
-const fresh=()=>({bpm:100,swing:50,swingMpc:true,stepLength:16,activeBank:0,pattern:0,patterns:Array.from({length:4},()=>({})),patNames:{},names:{},vols:{},pans:{},mutes:{},tunes:{},trims:{},wavFmt:'24-44100',master:85,octave:3,instrument:'piano',velMode:'fixed',daw:'fl',midiRoute:'auto',padCh:9,keyCh:0,padBase:36,clockOut:false,clockFollow:false,songMode:false,songPattern:false,songZoom:28,tfxMode:'filter',tfxCC:{x:null,y:null},plSrc:'p0',plSnap:'beat',recLatency:-1,edZoom:160,edGrid:'1/16',metro:false,full:false,nr:false,nrRate:'1/16',lev:'off',levSrc:null});
+const fresh=()=>({bpm:100,swing:50,swingMpc:true,stepLength:16,activeBank:0,pattern:0,patterns:Array.from({length:4},()=>({})),patNames:{},names:{},vols:{},pans:{},mutes:{},tunes:{},trims:{},wavFmt:'24-44100',master:85,octave:3,instrument:'piano',velMode:'fixed',daw:'fl',midiRoute:'auto',padCh:9,keyCh:0,padBase:36,clockOut:false,clockFollow:false,songMode:false,songPattern:false,songZoom:28,tfxMode:'filter',tfxCC:{x:null,y:null},plSrc:'p0',plSnap:'beat',recLatency:-1,edZoom:160,edGrid:'1/16',metro:false,full:false,nr:false,nrRate:'1/16',lev:'off',levSrc:null,thRoot:0,thScale:'major',chGroup:'std',chVoicing:'close',chDur:'1/2',chType:'maj7',stepIns:false,kbKeyW:44,kbShowScale:true,kbLock:false,kbChordMode:false,edTool:'draw',edScaleHi:true,edStamp:'c:maj7',edVelLane:true,edRowH:null,edQStr:100,edQEnds:false,edArp:'up',plFull:null});
 function sanitize(src){const f=fresh();src=src||{};let s={...f,...src};
  if(src.swingMpc!==true){s.swing=Math.round(50+clamp(+src.swing||0,0,65)*.325);s.swingMpc=true} // oude 0–65 → MPC 50–75%
  if(s.velMode==='full'){s.velMode='fixed';s.full=true}
@@ -34,8 +34,8 @@ function sanitize(src){const f=fresh();src=src||{};let s={...f,...src};
  s.patterns=s.patterns.map(p=>(p&&typeof p==='object'&&!Array.isArray(p))?p:{});
  for(const k of ['names','vols','pans','mutes','tunes','trims'])if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]={};
  s.bpm=clamp(parseInt(s.bpm,10)||100,45,240);s.stepLength=s.stepLength===32?32:16;
- s.activeBank=clamp(s.activeBank|0,0,3);s.pattern=clamp(s.pattern|0,0,s.patterns.length-1);s.master=clamp(+s.master||0,0,100);s.octave=clamp(s.octave|0,1,6);
- if(!['piano','bass','guitar','synth'].includes(s.instrument)&&!/^u:\w+$/.test(s.instrument))s.instrument='piano';if(!['16-44100','24-44100','24-48000'].includes(s.wavFmt))s.wavFmt='24-44100';if(!['fixed','pos'].includes(s.velMode))s.velMode='fixed';s.metro=!!s.metro;s.songMode=!!s.songMode;s.padCh=clamp(Number(s.padCh??9)|0,0,15);s.keyCh=clamp(Number(s.keyCh??0)|0,0,15);s.padBase=clamp(Number(s.padBase??36)|0,0,64);s.clockOut=!!s.clockOut;s.clockFollow=!!s.clockFollow&&!s.clockOut;s.songPattern=s.songPattern!==false;s.songZoom=clamp(+s.songZoom||28,6,240);if(!['filter','stutter','delay','reverb','gate','lofi','flanger'].includes(s.tfxMode))s.tfxMode='filter';if(!s.tfxCC||typeof s.tfxCC!=='object')s.tfxCC={x:null,y:null};for(const k of ['x','y'])s.tfxCC[k]=Number.isInteger(s.tfxCC[k])&&s.tfxCC[k]>=0&&s.tfxCC[k]<128?s.tfxCC[k]:null;if(!/^(p\d{1,3}|n|a)$/.test(s.plSrc||''))s.plSrc='p0';if(!['bar','beat','1/16','off'].includes(s.plSnap))s.plSnap='beat';s.recLatency=clamp(Math.round(Number(s.recLatency??-1)),-1,400);s.edZoom=clamp(+s.edZoom||160,40,1200);if(!['1/4','1/8','1/8T','1/16','1/16T','1/32','off'].includes(s.edGrid))s.edGrid='1/16';if(!['fl','ableton','logic'].includes(s.daw))s.daw='fl';if(!['auto','pads','keys'].includes(s.midiRoute))s.midiRoute='auto';return s}
+ s.activeBank=clamp(s.activeBank|0,0,3);s.pattern=clamp(s.pattern|0,0,s.patterns.length-1);s.master=clamp(+s.master||0,0,100);s.octave=clamp(s.octave|0,0,7);s.thRoot=clamp(s.thRoot|0,0,11);s.edRowH=s.edRowH==null?null:clamp(+s.edRowH||14,8,40);s.edQStr=clamp(+s.edQStr||100,0,100);s.edVelLane=s.edVelLane!==false;if(!/^[cs]:\w+$/.test(s.edStamp||''))s.edStamp='c:maj7';s.kbKeyW=clamp(+s.kbKeyW||44,24,90);for(const k of ['stepIns','kbShowScale','kbLock','kbChordMode','edScaleHi'])s[k]=!!s[k];if(!['std','jazz','key','prog'].includes(s.chGroup))s.chGroup='std';
+ if(!INST_IDS.includes(s.instrument)&&!/^u:\w+$/.test(s.instrument))s.instrument='piano';if(!['16-44100','24-44100','24-48000'].includes(s.wavFmt))s.wavFmt='24-44100';if(!['fixed','pos'].includes(s.velMode))s.velMode='fixed';s.metro=!!s.metro;s.songMode=!!s.songMode;s.padCh=clamp(Number(s.padCh??9)|0,0,15);s.keyCh=clamp(Number(s.keyCh??0)|0,0,15);s.padBase=clamp(Number(s.padBase??36)|0,0,64);s.clockOut=!!s.clockOut;s.clockFollow=!!s.clockFollow&&!s.clockOut;s.songPattern=s.songPattern!==false;s.songZoom=clamp(+s.songZoom||28,6,240);if(!['filter','stutter','delay','reverb','gate','lofi','flanger'].includes(s.tfxMode))s.tfxMode='filter';if(!s.tfxCC||typeof s.tfxCC!=='object')s.tfxCC={x:null,y:null};for(const k of ['x','y'])s.tfxCC[k]=Number.isInteger(s.tfxCC[k])&&s.tfxCC[k]>=0&&s.tfxCC[k]<128?s.tfxCC[k]:null;if(!/^(p\d{1,3}|n|a)$/.test(s.plSrc||''))s.plSrc='p0';if(!['bar','beat','1/16','off'].includes(s.plSnap))s.plSnap='beat';s.recLatency=clamp(Math.round(Number(s.recLatency??-1)),-1,400);s.edZoom=clamp(+s.edZoom||160,40,1200);if(!['1/4','1/8','1/8T','1/16','1/16T','1/32','off'].includes(s.edGrid))s.edGrid='1/16';if(!['fl','ableton','logic'].includes(s.daw))s.daw='fl';if(!['auto','pads','keys'].includes(s.midiRoute))s.midiRoute='auto';return s}
 let state=fresh();try{const raw=storeGet('mpcts-v2');if(raw)state=sanitize(JSON.parse(raw))}catch(e){state=fresh()}
 let saveTimer=null;function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{storeSet('mpcts-v2',JSON.stringify(state));if(typeof songPatternsChanged==='function')songPatternsChanged()},120)}
 const slotKey=(b,i)=>`${b}:${i}`;
@@ -342,7 +342,7 @@ function toggleMetro(){state.metro=!state.metro;updateTransport();save()}
 /* ---------- Klavier ---------- */
 const activeSynth=new Map();
 /* Eén synth-stem; werkt live én offline (WAV-export). release(t) mag in de toekomst liggen. */
-function makeVoice(c,dest,note,vel,at,inst){if(typeof inst==='string'&&inst.startsWith('u:')){const v=makeSamplerVoice(c,dest,note,vel,at,inst);if(v)return v;inst='piano'}const f=440*2**((note-69)/12);
+function makeVoice(c,dest,note,vel,at,inst){if(typeof inst==='string'&&inst.startsWith('u:')){const v=makeSamplerVoice(c,dest,note,vel,at,inst);if(v)return v;inst='piano'}if(SYNTH_PRESETS[inst])return presetVoice(c,dest,note,vel,at,SYNTH_PRESETS[inst]);const f=440*2**((note-69)/12);
  const out=c.createGain();out.gain.value=0;
  const filt=c.createBiquadFilter();filt.type='lowpass';filt.frequency.value=inst==='bass'?900:inst==='synth'?3200:inst==='guitar'?2600:5200;filt.Q.value=inst==='synth'?4:.7;
  out.connect(filt);filt.connect(dest);
@@ -367,36 +367,7 @@ function instNoteOff(note,fromIn=false){const v=activeSynth.get(note);let ch=0;i
  if(!kbHeldNotes().has(note)){const k=$(`#keyboard [data-note="${note}"]`);if(k)k.classList.remove('held')}}
 const kbPointers=new Map(),kbKeysDown=new Map();
 const kbHeldNotes=()=>new Set([...[...kbPointers.values()].map(p=>p.note),...kbKeysDown.values()].filter(n=>n!=null&&activeSynth.has(n)));
-function keyboardOctaves(){const w=($('#key-area')?.clientWidth)||window.innerWidth;return w<520?1:w<980?2:3}
 let kbFirst=48,kbLast=72;
-function drawKeyboard(){const root=$('#keyboard');root.innerHTML='';const oct=keyboardOctaves();
- const startOct=clamp(state.octave,1,Math.max(1,9-oct));kbFirst=(startOct+1)*12;kbLast=kbFirst+oct*12;
- const whites=[];for(let n=kbFirst;n<=kbLast;n++)if(![1,3,6,8,10].includes(n%12))whites.push(n);
- for(const n of whites){const k=document.createElement('button');k.className='white-key';k.dataset.note=n;k.innerHTML=`<b>${n%12===0?noteLabel(n):''}</b>`;root.append(k)}
- const bw=(100/whites.length)*.62;
- for(let n=kbFirst;n<=kbLast;n++){if(![1,3,6,8,10].includes(n%12))continue;const before=whites.filter(x=>x<n).length;const k=document.createElement('button');k.className='black-key';k.style.left=`${before/whites.length*100}%`;k.style.width=bw+'%';k.dataset.note=n;root.append(k)}
- $('#octave-label').textContent=`${noteLabel(kbFirst)}–${noteLabel(kbLast)}`;activeSynth.forEach((_,n)=>{const k=root.querySelector(`[data-note="${n}"]`);if(k)k.classList.add('held')})}
-function keyAt(x,y){const el=document.elementFromPoint(x,y);return el&&el.closest?el.closest('#keyboard [data-note]'):null}
-function keyVel(e,k){if(e.pointerType==='pen'&&e.pressure>0)return clamp(Math.round(e.pressure*100+27),20,127);if(state.full)return 127;
- if(state.velMode==='pos'){const r=k.getBoundingClientRect();return Math.round(45+clamp((e.clientY-r.top)/r.height,0,1)*82)}return 105}
-const kb=$('#keyboard');
-kb.addEventListener('pointerdown',e=>{const k=e.target.closest('[data-note]');if(!k)return;e.preventDefault();try{kb.setPointerCapture(e.pointerId)}catch(x){}
- const n=+k.dataset.note;kbPointers.set(e.pointerId,{note:n});instNoteOn(n,keyVel(e,k))});
-kb.addEventListener('pointermove',e=>{const p=kbPointers.get(e.pointerId);if(!p)return;const k=keyAt(e.clientX,e.clientY);const n=k?+k.dataset.note:null;if(n===p.note)return;
- const old=p.note;p.note=n;if(old!=null&&!kbHeldNotes().has(old))instNoteOff(old);if(n!=null)instNoteOn(n,keyVel(e,k))});
-const kbRelease=e=>{const p=kbPointers.get(e.pointerId);if(!p)return;kbPointers.delete(e.pointerId);if(p.note!=null&&!kbHeldNotes().has(p.note))instNoteOff(p.note)};
-['pointerup','pointercancel','lostpointercapture'].forEach(ev=>kb.addEventListener(ev,kbRelease));
-kb.addEventListener('contextmenu',e=>e.preventDefault());
-
-const CHORDS=[['Cmaj7',[0,4,7,11]],['Cm9',[0,3,7,10,14]],['C7',[0,4,7,10]],['C9',[0,4,7,10,14]],['Cm7',[0,3,7,10]],['Cmaj9',[0,4,7,11,14]],['Csus4',[0,5,7]],['C13',[0,4,10,14,21]],['Fmaj7',[5,9,12,16]],['G7',[7,11,14,17]],['Am9',[9,12,16,19,23]],['Dm9',[2,5,9,12,16]]];
-function drawChords(){const c=$('#chords');c.innerHTML='';CHORDS.forEach(([name],idx)=>{const b=document.createElement('button');b.textContent=name;b.dataset.chord=idx;c.append(b)})}
-const chordHeld=new Map();
-$('#chords').addEventListener('pointerdown',e=>{const b=e.target.closest('[data-chord]');if(!b)return;e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(x){}
- const root=(state.octave+1)*12,notes=CHORDS[+b.dataset.chord][1].map(d=>clamp(root+d,0,127)),strum=state.instrument==='guitar',timers=[];
- notes.forEach((n,i)=>{if(strum&&i)timers.push(setTimeout(()=>instNoteOn(n,90),i*22));else instNoteOn(n,94)});
- b.classList.add('held');chordHeld.set(e.pointerId,{b,notes,timers})});
-const chordRelease=e=>{const h=chordHeld.get(e.pointerId);if(!h)return;chordHeld.delete(e.pointerId);h.timers.forEach(clearTimeout);h.notes.forEach(n=>instNoteOff(n));h.b.classList.remove('held')};
-['pointerup','pointercancel','lostpointercapture'].forEach(ev=>$('#chords').addEventListener(ev,chordRelease));
 
 /* ---------- Mixer ---------- */
 function drawMixer(){if(typeof renderMixer==='function')renderMixer()}
@@ -475,13 +446,13 @@ async function exportWAV(){const OAC=window.OfflineAudioContext||window.webkitOf
  catch(e){console.error(e);toast('WAV-export mislukt: '+(e.message||e))}finally{btn.disabled=false;btn.textContent='↓ Exporteer WAV'}}
 
 /* ---------- Tabs & weergave ---------- */
-function setTab(name){currentTab=name;document.body.dataset.tab=name;$$('.tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));$$('.page').forEach(el=>el.classList.toggle('active',el.id==='view-'+name));
+function setTab(name){currentTab=name;document.body.dataset.tab=name;if(typeof plFullApply==='function')setTimeout(plFullApply,0);$$('.tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));$$('.page').forEach(el=>el.classList.toggle('active',el.id==='view-'+name));
  if(name==='sequence')drawSequencer();if(name==='keys')drawKeyboard();if(name==='mixer')drawMixer();if(name==='pads'){drawPads();setTimeout(()=>{if(typeof renderTrim==='function')renderTrim()},0)}if(name==='song')drawSongUI();
  if(window.matchMedia('(max-width:720px)').matches)window.scrollTo({top:0})}
 function renderAll(){buildBanks();drawPads();updateSelected();drawSequencer();drawMixer();updateTransport();updateVelUI();
  $('#bpm').value=state.bpm;$('#swing').value=state.swing;$('#swing-val').textContent=state.swing+'%';$('#step-length').value=state.stepLength;
  renderPatternPicker();
- renderInstChips();drawKeyboard();updateMPC();renderDAW();updateModeUI()}
+ renderInstChips();if(typeof renderTheory==='function')renderTheory();drawKeyboard();updateMPC();renderDAW();updateModeUI()}
 
 /* ---------- Bediening ---------- */
 $$('.tab').forEach(el=>el.onclick=()=>setTab(el.dataset.tab));
@@ -511,8 +482,6 @@ $('#load-project').onchange=async e=>{try{const f=e.target.files?.[0];if(!f)retu
  if(data.format!=='MPC Touch Studio Project v2'||!Array.isArray(data.state?.patterns)||!data.state.patterns.length)throw Error('Ongeldig project');
  stopTransport();state=sanitize(data.state);if(data.song)setSong(data.song);selectedPad=0;renderAll();save();toast('Project geladen (eigen samples blijven per apparaat)')}catch(x){toast('Project openen mislukt: '+x.message)}e.target.value=''};
 
-function shiftOctave(d){state.octave=clamp(state.octave+d,1,9-keyboardOctaves());drawKeyboard();save()}
-$('#octave-down').onclick=()=>shiftOctave(-1);$('#octave-up').onclick=()=>shiftOctave(1);
 
 $('#connect-btn').onclick=connect;
 $('#disconnect-btn').onclick=()=>{const ws=midi.ws;midi.ws=null;if(ws)ws.close();midi.paired=false;midi.wsPort='';setConnStatus('Verbinding handmatig verbroken');$('#midi-output').innerHTML='<option value="">Niet verbonden</option>'};
