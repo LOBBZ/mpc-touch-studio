@@ -10,11 +10,18 @@ Laat je iPhone/iPad (of een andere computer) via wifi MIDI naar je DAW sturen.
 
 Alleen standaard-Python + python-rtmidi.  Starten:  python mpc_bridge.py
 Opties: --port 8765  --pin 123456  --www ../www  --dry-run (zonder MIDI, voor testen)
+VST3 (Windows/Mac): pip install pedalboard numpy  -> je eigen plugins laden, bedienen en renderen.
 """
-import argparse, asyncio, base64, hashlib, json, mimetypes, os, platform, random, socket, struct, sys, threading, time
+import argparse, asyncio, base64, hashlib, json, mimetypes, os, platform, random, socket, struct, sys, threading, time, urllib.parse
 
-VERSION = 2
-FEATURES = ["clock", "virtual", "raw"]
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import vst_host
+except Exception as _e:  # bridge werkt ook zonder VST3
+    vst_host = None
+
+VERSION = 3
+FEATURES = ["clock", "virtual", "raw"] + (["vst"] if vst_host and vst_host.HAVE else [])
 VIRTUAL_NAME = "MPC Touch Studio"
 IS_WINDOWS = platform.system() == "Windows"
 
@@ -191,6 +198,7 @@ class Bridge:
         self.clock.start()
         self.www = os.path.abspath(args.www)
         self.loop = None
+        self.vst = vst_host.Host() if vst_host else None
 
     # ---- MIDI-berichten uit de app
     def later(self, delay_ms, data):
@@ -278,6 +286,68 @@ class Bridge:
                 self.clock.stop()
                 self.midi.all_off()
 
+    # ---- VST3 via HTTP (JSON; audio als ruwe float32, kanaal na kanaal)
+    CORS = ("Access-Control-Allow-Origin: *\r\nAccess-Control-Allow-Headers: content-type, x-pin\r\n"
+            "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Private-Network: true\r\n"
+            "Access-Control-Expose-Headers: x-frames, x-channels\r\n")
+
+    def reply(self, writer, code, body, ctype="application/json; charset=utf-8", extra=""):
+        if isinstance(body, (dict, list)):
+            body = json.dumps(body).encode()
+        elif isinstance(body, str):
+            body = body.encode()
+        reason = {200: "OK", 204: "No Content", 400: "Bad Request", 401: "Unauthorized", 404: "Not Found", 500: "Server Error", 503: "Unavailable"}.get(code, "OK")
+        writer.write((f"HTTP/1.1 {code} {reason}\r\nContent-Type: {ctype}\r\nContent-Length: {len(body)}\r\n{self.CORS}{extra}"
+                      "Cache-Control: no-store\r\nConnection: close\r\n\r\n").encode() + body)
+
+    async def vst_http(self, method, path, headers, reader, writer):
+        if method == "OPTIONS":
+            return self.reply(writer, 204, b"")
+        url = urllib.parse.urlparse(path)
+        q = {k: v[0] for k, v in urllib.parse.parse_qs(url.query).items()}
+        route = url.path.rstrip("/")
+        if route == "/vst/status":
+            st = vst_host.status() if vst_host else {"available": False, "error": "vst_host.py ontbreekt"}
+            st["bridge"] = VERSION
+            return self.reply(writer, 200, st)
+        if headers.get("x-pin") != self.pin:
+            return self.reply(writer, 401, {"error": "Onjuiste of ontbrekende koppelcode (PIN)"})
+        if not (vst_host and vst_host.HAVE):
+            return self.reply(writer, 503, {"error": "VST3 niet beschikbaar: installeer 'pedalboard' en 'numpy' (pip install pedalboard numpy)", "detail": vst_host.ERR if vst_host else None})
+        n = int(headers.get("content-length", "0") or 0)
+        if n > 3 * 1024 ** 3:
+            return self.reply(writer, 400, {"error": "te groot"})
+        body = await reader.readexactly(n) if n else b""
+        loop = asyncio.get_running_loop()
+        h = self.vst
+        try:
+            if route == "/vst/process":
+                ids = [i for i in q.get("ids", "").split(",") if i]
+                ch, sr, tail = int(q.get("ch", 2)), int(q.get("sr", 48000)), float(q.get("tail", 0))
+                print(f"[vst] Renderen: {len(body) // 4 // max(1, ch) / sr:.1f} s door {len(ids)} plugin(s)...", flush=True)
+                data, frames = await loop.run_in_executor(None, h.process, ids, body, ch, sr, tail)
+                return self.reply(writer, 200, data, "application/octet-stream", f"x-frames: {frames}\r\nx-channels: {ch}\r\n")
+            msg = json.loads(body.decode() or "{}") if body else {}
+            if route == "/vst/scan":
+                res = await loop.run_in_executor(None, vst_host.scan)
+                return self.reply(writer, 200, {"plugins": res, "dirs": vst_host.search_dirs()})
+            if route == "/vst/load":
+                res = await loop.run_in_executor(None, lambda: h.load(msg["path"], msg.get("name"), msg.get("state")))
+                if "id" in res:
+                    print(f"[vst] Geladen: {res['name']} ({len(res['params'])} parameters)", flush=True)
+                return self.reply(writer, 200, res)
+            fn = {"/vst/params": lambda: {"params": h.params(msg["id"])}, "/vst/set": lambda: h.set_params(msg["id"], msg.get("changes")),
+                  "/vst/state": lambda: h.get_state(msg["id"]), "/vst/restore": lambda: h.set_state(msg["id"], msg["state"]),
+                  "/vst/editor": lambda: h.request_editor(msg["id"]), "/vst/unload": lambda: h.unload(msg["id"]),
+                  "/vst/info": lambda: h.info(msg["id"])}.get(route)
+            if not fn:
+                return self.reply(writer, 404, {"error": "onbekend"})
+            return self.reply(writer, 200, await loop.run_in_executor(None, fn))
+        except KeyError as e:
+            return self.reply(writer, 404, {"error": str(e)})
+        except Exception as e:
+            return self.reply(writer, 500, {"error": f"{type(e).__name__}: {e}"})
+
     async def static(self, writer, path):
         path = path.split("?", 1)[0].split("#", 1)[0]
         rel = "index.html" if path in ("", "/") else path.lstrip("/")
@@ -314,6 +384,8 @@ class Bridge:
                 headers[k.strip().lower()] = v.strip()
             if path.startswith("/ws") and headers.get("upgrade", "").lower() == "websocket":
                 await self.websocket(reader, writer, headers, peer)
+            elif path.startswith("/vst"):
+                await self.vst_http(method, path, headers, reader, writer)
             elif method in ("GET", "HEAD"):
                 await self.static(writer, path)
         except (asyncio.TimeoutError, asyncio.IncompleteReadError, ConnectionError, OSError):
@@ -363,13 +435,35 @@ def main():
     p = argparse.ArgumentParser(description="MPC Touch Studio netwerk-bridge")
     p.add_argument("--port", type=int, default=8765)
     p.add_argument("--pin", default=os.environ.get("MPC_PIN"))
-    p.add_argument("--www", default=os.path.join(here, "..", "www"))
+    base = getattr(sys, "_MEIPASS", None)  # als losse .exe (PyInstaller) zit de app ín het programma
+    p.add_argument("--www", default=os.path.join(base, "www") if base else os.path.join(here, "..", "www"))
     p.add_argument("--dry-run", action="store_true", help="zonder MIDI, berichten alleen tonen")
     args = p.parse_args()
     if args.pin and not (len(args.pin) == 6 and args.pin.isdigit()):
         sys.exit("--pin moet 6 cijfers zijn")
+    bridge = Bridge(args)
+    stop = threading.Event()
+
+    def serve():
+        try:
+            asyncio.run(bridge.main())
+        except Exception as e:
+            print(f"Bridge-fout: {e}", flush=True)
+        finally:
+            stop.set()
+
+    t = threading.Thread(target=serve, daemon=True)
+    t.start()
+    if vst_host and vst_host.HAVE:
+        print(f"  VST3: aan (pedalboard {vst_host.PB_VERSION}). Plugin-vensters openen op deze computer.", flush=True)
+    elif vst_host:
+        print(f"  VST3: uit — installeer met:  pip install pedalboard numpy   ({vst_host.ERR})", flush=True)
     try:
-        asyncio.run(Bridge(args).main())
+        if bridge.vst:
+            bridge.vst.editor_loop(stop)  # plugin-vensters horen op de hoofdthread
+        else:
+            while not stop.is_set():
+                stop.wait(0.5)
     except KeyboardInterrupt:
         print("\nBridge gestopt.")
 

@@ -1,18 +1,43 @@
-// Electron-hoofdproces: draait de web-app als desktop-app (Windows / macOS).
-// Web MIDI werkt hier direct (loopMIDI op Windows, IAC-driver op Mac) — de netwerk-bridge is dan niet nodig.
+// Electron-hoofdproces: draait MPC Touch Studio als Windows/macOS-app.
+// Web MIDI werkt hier direct (MPC/keyboard via USB; naar FL Studio via loopMIDI).
+// De meegeleverde bridge (MPC-Touch-Bridge.exe) start vanzelf mee: daarmee laadt de app je eigen VST3-plugins.
 const { app, BrowserWindow, session, shell } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const { spawn } = require('child_process');
+const crypto = require('crypto');
 
-function createWindow() {
+let bridge = null;
+const BRIDGE_PORT = 8765;
+
+function bridgePin() {
+  const f = path.join(app.getPath('userData'), 'bridge-pin.txt');
+  try { const p = fs.readFileSync(f, 'utf8').trim(); if (/^\d{6}$/.test(p)) return p; } catch (e) {}
+  const p = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  try { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, p); } catch (e) {}
+  return p;
+}
+
+function startBridge(pin) {
+  const exe = path.join(process.resourcesPath || '', 'bridge', process.platform === 'win32' ? 'MPC-Touch-Bridge.exe' : 'MPC-Touch-Bridge');
+  if (!fs.existsSync(exe)) return false;
+  try {
+    bridge = spawn(exe, ['--port', String(BRIDGE_PORT), '--pin', pin], { windowsHide: true, stdio: 'ignore' });
+    bridge.on('error', () => { bridge = null; });
+    bridge.on('exit', () => { bridge = null; });
+    return true;
+  } catch (e) { bridge = null; return false; }
+}
+
+function createWindow(query) {
   const win = new BrowserWindow({
-    width: 1360, height: 900, minWidth: 900, minHeight: 600,
+    width: 1400, height: 920, minWidth: 900, minHeight: 600,
     backgroundColor: '#1c2226', title: 'MPC Touch Studio',
     icon: path.join(__dirname, '..', 'www', 'icons', 'icon-512.png'),
     autoHideMenuBar: true,
     webPreferences: { contextIsolation: true, sandbox: true, autoplayPolicy: 'no-user-gesture-required' }
   });
-  win.loadFile(path.join(__dirname, '..', 'www', 'index.html'));
-  // Externe links (bv. loopMIDI) in de gewone browser openen
+  win.loadFile(path.join(__dirname, '..', 'www', 'index.html'), { query });
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
 }
 
@@ -20,7 +45,10 @@ app.whenReady().then(() => {
   const allowed = new Set(['midi', 'midiSysex', 'media', 'audioCapture', 'fullscreen']);
   session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => cb(allowed.has(permission)));
   session.defaultSession.setPermissionCheckHandler((_wc, permission) => allowed.has(permission));
-  createWindow();
-  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
+  const pin = bridgePin();
+  const query = startBridge(pin) ? { bridge: `http://127.0.0.1:${BRIDGE_PORT}`, pin } : {};
+  createWindow(query);
+  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(query); });
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('will-quit', () => { if (bridge) { try { bridge.kill(); } catch (e) {} } });

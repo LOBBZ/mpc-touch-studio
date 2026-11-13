@@ -347,23 +347,31 @@ function makeSongMIDI(){const tempo=Math.round(60000000/state.bpm),enc=s=>[...s]
   chunks.push(chunk(t.name,ev))}
  const head=[77,84,104,100,0,0,0,6,0,1,(chunks.length>>8)&255,chunks.length&255,(PPQ>>8)&255,PPQ&255];
  const out=new Uint8Array(head.length+chunks.reduce((n,c)=>n+c.length,0));let o=0;out.set(head,o);o+=head.length;for(const c of chunks){out.set(c,o);o+=c.length}return out}
-async function exportSongWAV(){const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!OAC){toast('WAV-export wordt niet ondersteund in deze browser');return}
- const len=songLength();if(!song.tracks.some(t=>t.events.length)){toast('De playlist is nog leeg');return}
- const dur=ticksToSec(len)+Math.max(2.5,masterFx().revDecay+.5),btn=$('#song-wav');if(dur>240&&IS_IOS)toast('Lange song: renderen kan even duren en veel geheugen vragen',null,4000);
+/* Eén render-functie voor WAV-export, AI-analyse en VST3-render.
+   o: {rate, tracks:[...], inserts:true, master:true, limiter:true, from:0, to:null (sec), progress:fn} */
+async function renderMix(o={}){const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!OAC)throw new Error('Offline renderen wordt niet ondersteund in deze browser');
+ const rate=o.rate||wavFmt().rate,tracks=o.tracks||song.tracks.filter(t=>trackAudible(t)&&t.events.length),useIns=o.inserts!==false,useMaster=o.master!==false,useLim=o.limiter!==false&&!(typeof slotsOf==='function'&&useMaster&&slotsOf('master').some(s=>s.on&&s.type==='limiter'));
+ const full=ticksToSec(songLength())+Math.max(2.5,masterFx().revDecay+.5),from=Math.max(0,o.from||0),to=Math.min(full,o.to??full),dur=Math.max(.5,to-from);
+ const off=new OAC(2,Math.ceil(dur*rate),rate);if(typeof loadWorklets==='function')await loadWorklets(off);
+ const master=off.createGain();master.gain.value=useMaster?state.master/100:1;let tail=off.destination;
+ if(useLim){const lim=off.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=7;lim.ratio.value=7;lim.attack.value=.005;lim.release.value=.12;lim.connect(off.destination);tail=lim}
+ if(useMaster&&typeof buildSlotChain==='function'){const ch=buildSlotChain(off,slotsOf('master'),false);master.connect(ch.inp);ch.out.connect(tail)}else master.connect(tail);
+ const route=useIns?makeOfflineRouting(off,master):{trackIn:t=>buildTrackStrip(off,t,master).inp},list=[];if(useIns&&from===0)autoScheduleOffline(route,master,.05);
+ const T0=.05-from;for(const t of tracks){if(!t.events.length)continue;const g=route.trackIn(t);for(const e of t.events){const tt=T0+ticksToSec(e[0]);if(tt>dur)continue;list.push({tt,e,t,g})}}
+ list.sort((a,b)=>a.tt-b.tt);let idx=0;
+ const play=({tt,e,t,g})=>{if(e[1]===2){const c=clips.get(e[2]);if(!c)return;const o0=ticksToSec(e[4]||0),l=e[5]!=null?ticksToSec(e[5]):c.dur-o0;let st=tt,oo=o0,ll=l;if(st<0){oo-=st;ll+=st;st=0}if(ll<=0||oo>=c.dur)return;
+   const s=off.createBufferSource(),cg=off.createGain();s.buffer=c.buf;cg.gain.value=e[3]??1;s.connect(cg);cg.connect(g);s.start(st,oo,ll)}
+  else if(e[1]===0){if(tt>=0)soundAt(off,e[2],e[3],tt,e[4]/127,g,e[5]||0)}else{const end=tt+ticksToSec(e[4]);if(end>0)makeVoice(off,g,e[2],e[3],Math.max(0,tt),t.inst).release(Math.max(.01,end))}};
+ const scheduleUpTo=lim=>{while(idx<list.length&&list[idx].tt<lim)play(list[idx++])};
+ const WIN=2;let chunked=false;
+ if(typeof off.suspend==='function'&&dur>WIN+1){try{scheduleUpTo(WIN+.5);for(let w=WIN;w<dur-.1;w+=WIN){const at=w;off.suspend(at).then(()=>{scheduleUpTo(at+WIN+.5);off.resume()})}chunked=true}catch(e){chunked=false}}
+ if(!chunked)scheduleUpTo(Infinity);
+ const prog=o.progress?setInterval(()=>o.progress(Math.min(99,Math.round(idx/Math.max(1,list.length)*100))),250):0;
+ try{return await renderOffline(off)}finally{clearInterval(prog)}}
+async function exportSongWAV(){if(!song.tracks.some(t=>t.events.length)){toast('De playlist is nog leeg');return}const btn=$('#song-wav');
+ const dur=ticksToSec(songLength());if(dur>240&&IS_IOS)toast('Lange song: renderen kan even duren en veel geheugen vragen',null,4000);
  btn.disabled=true;btn.textContent='WAV renderen...';
- try{const rate=wavFmt().rate,off=new OAC(2,Math.ceil(dur*rate),rate),master=off.createGain();master.gain.value=state.master/100;
-  const lim=off.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=7;lim.ratio.value=7;lim.attack.value=.005;lim.release.value=.12;master.connect(lim);lim.connect(off.destination);
-  const route=makeOfflineRouting(off,master),list=[];autoScheduleOffline(route,master,.05);for(const t of song.tracks){if(!trackAudible(t)||!t.events.length)continue;const g=route.trackIn(t);for(const e of t.events)list.push({tt:.05+ticksToSec(e[0]),e,t,g})}
-  list.sort((a,b)=>a.tt-b.tt);let idx=0;
-  const scheduleUpTo=lim=>{while(idx<list.length&&list[idx].tt<lim){const {tt,e,t,g}=list[idx++];
-   if(e[1]===2){const c=clips.get(e[2]);if(c){const s=off.createBufferSource(),cg=off.createGain();s.buffer=c.buf;cg.gain.value=e[3]??1;s.connect(cg);cg.connect(g);const o=ticksToSec(e[4]||0),l=e[5]!=null?ticksToSec(e[5]):c.dur-o;if(l>0&&o<c.dur)s.start(tt,o,l)}}
-   else if(e[1]===0)soundAt(off,e[2],e[3],tt,e[4]/127,g,e[5]||0);else makeVoice(off,g,e[2],e[3],tt,t.inst).release(tt+ticksToSec(e[4]))}};
-  /* In blokken van 2 s inplannen: houdt de audiograaf klein, zodat ook songs van 7+ minuten snel renderen */
-  const WIN=2;let chunked=false;
-  if(typeof off.suspend==='function'){try{scheduleUpTo(WIN+.5);for(let w=WIN;w<dur-.1;w+=WIN){const at=w;off.suspend(at).then(()=>{scheduleUpTo(at+WIN+.5);off.resume()})}chunked=true}catch(e){chunked=false}}
-  if(!chunked)scheduleUpTo(Infinity);
-  let pct=0;const prog=setInterval(()=>{const p=Math.min(99,Math.round(idx/list.length*100));if(p!==pct){pct=p;btn.textContent=`WAV renderen... ${p}%`}},250);
-  let buf;try{buf=await renderOffline(off)}finally{clearInterval(prog)}if(await deliver(encodeWAV(buf,wavFmt().bits),`MPC_Touch_Song_${state.bpm}bpm.wav`))toast('Song-WAV geëxporteerd')}
+ try{const buf=await renderMix({progress:p=>btn.textContent=`WAV renderen... ${p}%`});if(await deliver(encodeWAV(buf,wavFmt().bits),`MPC_Touch_Song_${state.bpm}bpm.wav`))toast('Song-WAV geëxporteerd')}
  catch(e){console.error(e);toast('WAV-export mislukt: '+(e.message||e))}finally{btn.disabled=false;btn.textContent='↓ Song als WAV'}}
 
 /* ---------- Bediening ---------- */

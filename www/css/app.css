@@ -466,3 +466,27 @@ body.pl-full #ed-panel[open] #ed-hint,body.pl-full #ed-panel[open] #ed-audio{dis
 @media (max-height:520px){body.pl-full #ed-panel[open]{height:calc(100dvh - 6px);border-radius:0}
  body.pl-full #ed-panel[open] .ed-tools{margin:3px 0}body.pl-full #ed-panel[open] .ed-tools .btn,body.pl-full #ed-panel[open] .ed-tools .chip,body.pl-full #ed-panel[open] .ed-tools select{min-height:30px;padding:3px 7px;font-size:12px}
  body.pl-full #ed-panel>summary{padding:3px 4px}body.pl-full #ed-panel[open] .ed-toolset .chip span{display:none}}
+
+/* ===== FX-rek, Pro EQ, AI-paneel, VST3 ===== */
+.fx-rack .slot-list{display:flex;flex-direction:column;gap:3px;margin:6px 0}
+.slot{display:flex;align-items:center;gap:4px;background:#1d2427;border:1px solid #12171a;border-radius:6px;padding:3px 4px}
+.slot.sel{border-color:var(--amber);background:#2b2a22}.slot.off .slot-name{opacity:.45}
+.slot .led{width:14px;height:14px;border-radius:50%;border:1px solid #0c1012;background:#3a4246;flex:none;padding:0}.slot .led.on{background:#9bd94a;box-shadow:0 0 6px #9bd94a}
+.slot-name{flex:1;min-width:0;text-align:left;background:none;border:0;color:var(--text);font-weight:600;font-size:13px;padding:6px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot .tb{width:28px;height:26px;border-radius:5px;border:1px solid #12171a;background:#30393e;color:var(--text);font-size:10px;padding:0}.slot .tb.x{color:#ff8a8a}
+.ai-tag{background:#7c4dff;color:#fff;border-radius:4px;font-size:9px;padding:1px 4px;margin-left:4px;vertical-align:middle}
+.slot-edit{margin-top:6px}.slot-head{display:flex;align-items:center;justify-content:space-between;margin:6px 0}
+.eq-cv{display:block;width:100%;height:clamp(180px,32vh,300px);border-radius:6px;border:1px solid #0c1012;touch-action:none;cursor:crosshair}
+.eq-bands{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}.eq-bands .chip.dim{opacity:.5}
+.eq-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0}
+.ai-panel{border:1px solid #5b3fc4;background:linear-gradient(#2c2840,#232030)}
+.ai-panel h3{color:#c9b6ff}.ai-status{color:var(--amber);font-weight:600;margin:6px 0}.ai-status[hidden]{display:none}
+.ai-report h4{margin:8px 0 4px}.ai-t{width:100%;border-collapse:collapse;font-size:12px}.ai-t th,.ai-t td{border-bottom:1px solid #3a3550;padding:4px;text-align:left;vertical-align:top}
+.ai-meters{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin:6px 0}.ai-meters div{background:#1b1828;border-radius:6px;padding:6px;text-align:center}.ai-meters b{display:block;font-size:18px;color:#c9b6ff}.ai-meters span{font-size:10px;color:var(--dim)}
+.vst-panel{border:1px solid #2f6b8a;background:linear-gradient(#22303a,#1d262d)}.vst-panel h3{color:#8fd3ff}
+.vst-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0}.vst-params{max-height:320px;overflow:auto;margin-top:6px}
+.vst-plug{display:flex;align-items:center;gap:6px;background:#1a2228;border:1px solid #11181d;border-radius:6px;padding:4px 6px;margin:3px 0}.vst-plug b{flex:1}
+.fx-body>.fx-sec{min-width:0}
+.fx-body>.ai-panel,.fx-body>.vst-panel{grid-column:1/-1}
+.vst-row input,.vst-row select{min-width:0;max-width:100%}
+.ai-report{overflow-x:auto}

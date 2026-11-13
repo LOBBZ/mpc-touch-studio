@@ -10,6 +10,23 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bridge met VST3-host als .exe bouwen (geen Python nodig voor de gebruiker)
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller pedalboard numpy python-rtmidi
+          pyinstaller --noconfirm --onefile --console --name MPC-Touch-Bridge --collect-all pedalboard --hidden-import vst_host --paths bridge --add-data "www;www" --distpath bridge-dist bridge/mpc_bridge.py
+      - name: Bridge testen
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath bridge-dist\MPC-Touch-Bridge.exe -ArgumentList '--dry-run','--pin','123456','--port','8899' -PassThru
+          Start-Sleep -Seconds 6
+          $r = Invoke-RestMethod http://127.0.0.1:8899/vst/status
+          $r | ConvertTo-Json
+          Stop-Process -Id $p.Id -Force
+          if (-not $r.available) { throw "VST3-host niet beschikbaar in de bridge-exe: $($r.error)" }
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -19,6 +36,8 @@ jobs:
         run: npx electron-builder --win nsis portable zip --x64 --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: Bridge los erbij
+        run: copy bridge-dist\MPC-Touch-Bridge.exe dist\MPC-Touch-Bridge.exe
       - name: Bestanden bewaren
         uses: actions/upload-artifact@v4
         with:
@@ -31,10 +50,12 @@ jobs:
         with:
           tag_name: v${{ github.run_number }}-win
           name: MPC Touch Studio voor Windows (build ${{ github.run_number }})
+          make_latest: true
           body: |
             **Installer**: MPC-Touch-Studio-Setup-….exe (installeren, met snelkoppeling op het bureaublad)
             **Portable**: MPC-Touch-Studio-Portable-….exe (zonder installeren starten)
             **Zip**: uitpakken en `MPC Touch Studio.exe` starten
+            **MPC-Touch-Bridge.exe**: alleen nodig als je de app op je telefoon/tablet of in de browser gebruikt en je VST3-plugins op deze pc wilt laden (de Windows-app start de bridge zelf).
           files: |
             dist/*.exe
             dist/*.zip

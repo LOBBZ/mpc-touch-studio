@@ -97,6 +97,20 @@ Dubbeltik een notenclip om hem te openen.
 - **Per spoor:** EQ (laag/mid/hoog), compressor, reverb- en delay-send en pan.
 - **Master:** reverb en een delay die meeloopt met de BPM.
 
+## Effecten, AI Mix & Master en VST3
+**Effect-slots** (Mixer → FX bij een insert of de master, tot 10 per insert): Pro EQ (8 banden, sleep de punten in de curve, analyzer, low/high cut tot 48 dB/oct), Compressor (met parallel-mix), Multiband, Saturator (tape/buis/hard/fuzz), De-esser, Gate, Transient shaper, Reverb (room/chamber/hall/plate/vintage/kathedraal/spring), Delay (ping-pong, tempo-sync), Chorus/Flanger, Stereo Imager (met bas mono), Utility en een Limiter met lookahead en true-peak plafond. Alles klinkt ook in de WAV-export.
+
+**🤖 AI Mix**: meet elk spoor (LUFS, pieken, crest factor, spectrum per terts), herkent de rol (drums, bas, zang, keys, pad, lead) en zet gain staging, EQ (low cut, modder, resonanties, presence, ruimte tussen kick/bas en zang/keys), compressie, de-esser, saturatie, panning en reverb/delay. Alles komt als gewone **AI**-slots in de inserts; ↶ Ongedaan zet alles terug.
+**🎛️ AI Master**: kies een doel (Streaming −14, Apple −16, Pop −10, Hip-hop −9, Club −8, Dynamisch −16 LUFS) en een genre. De AI vergelijkt je mix met een doelcurve en bouwt EQ → multiband → glue → tape → stereo → limiter; de luidheid wordt gemeten tot het doel is gehaald (true peak ≤ −1 dBTP). Met **A/B** vergelijk je op gelijk volume.
+
+**🔌 VST3** (Windows/Mac): je eigen plugins (FabFilter Pro-Q 4, Valhalla, sonible, iZotope, Waves …) via de bridge met Spotify's *pedalboard*.
+- Windows-app: de bridge zit erin en start vanzelf. Mixer → insert → *VST3-plugins* → zoeken → **+ Toevoegen**.
+- **🪟 Venster** opent het echte venster van de plugin op je pc; **↻ Ophalen** bewaart de instellingen in je project.
+- **Parameters**: alle parameters als schuifjes. **🤖 AI → plugin**: zet de AI-EQ in Pro-Q (banden, frequentie, gain, Q, vorm) of de AI-compressie in een compressor-plugin.
+- **🧊 Freeze**: rendert de sporen van een insert door de plugin-keten naar een nieuw audiospoor. **🎚️ Master door VST3 → WAV**: je mix door bijv. Ozone en direct als WAV.
+- Plugins renderen *offline* (zoals freeze in FL); live meespelen door een VST3 kan een browser-app niet.
+- Telefoon/browser + pc: start **MPC-Touch-Bridge.exe** (uit de release) of `bridge\start_windows.bat`, en open de app via het http-adres dat de bridge toont.
+
 ## Telefoon: FL-weergave van de playlist
 Op een telefoon of tablet opent de Playlist automatisch in **FL-weergave**: de playlist vult het scherm, één scrollbare werkbalk, compacte sporen. Knijp met **twee vingers** om in te zoomen. Dubbeltik een clip: de piano roll schuift van onderen in beeld (in liggende stand op volledig scherm). Knop ⛶/⤡ wisselt tussen FL-weergave en normaal.
 
