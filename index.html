@@ -30,7 +30,8 @@
         <button class="btn" id="stop" aria-label="Stop">■<span class="lbl"> Stop</span></button>
         <button class="btn" id="rec" aria-label="Opnemen">●<span class="lbl"> Rec</span></button>
         <button class="btn" id="metro" aria-pressed="false" aria-label="Metronoom">♩<span class="lbl"> Klik</span></button>
-        <button class="btn mode-btn" id="mode-btn" aria-label="Wissel tussen patroon-loop en song">LOOP</button>
+        <button class="btn tfx-btn" id="tfx-btn" aria-label="Touch FX: effecten met je vinger">XY<span class="lbl"> FX</span></button>
+        <button class="btn mode-btn" id="mode-btn" aria-label="Wissel tussen patroon (PAT) en song (SONG)">PAT</button>
       </div>
       <div class="tgroup">
         <div class="bpm"><button class="btn icon" id="bpm-down" aria-label="BPM lager">−</button><label class="bpm-box"><input id="bpm" type="number" inputmode="numeric" min="45" max="240" value="100" aria-label="BPM"><span>BPM</span></label><button class="btn icon" id="bpm-up" aria-label="BPM hoger">+</button></div>
@@ -44,7 +45,7 @@
   <nav class="tabs" aria-label="Onderdelen">
     <button class="tab active" data-tab="pads"><i>▦</i><span>Pads</span></button>
     <button class="tab" data-tab="sequence"><i>▤</i><span>Sequencer</span></button>
-    <button class="tab" data-tab="song"><i>☰</i><span>Song</span></button>
+    <button class="tab" data-tab="song"><i>☰</i><span>Playlist</span></button>
     <button class="tab" data-tab="keys"><i>♬</i><span>Piano</span></button>
     <button class="tab" data-tab="mixer"><i>☷</i><span>Mixer</span></button>
     <button class="tab" data-tab="connect"><i>⇄</i><span>DAW / MIDI</span></button>
@@ -101,17 +102,30 @@
   </div></section>
 
   <section id="view-song" class="page"><div class="panel">
-    <div class="panel-head"><h2>Song · multitrack</h2><div class="chipset" id="mode-picks"><button class="chip" data-mode="loop">Patroon (loop)</button><button class="chip" data-mode="song">Song (onbeperkt)</button></div></div>
+    <div class="panel-head"><h2>Playlist</h2><div class="chipset" id="mode-picks"><button class="chip" data-mode="loop">PAT · patroon</button><button class="chip" data-mode="song">SONG · playlist</button></div></div>
     <div class="song-bar">
       <div class="song-time"><b id="song-pos">0:00.0</b><span class="muted"> / </span><span id="song-len">0:00</span><span class="badge" id="song-barpos">MAAT 1.1</span></div>
       <div class="btn-row" style="margin:0"><button class="btn small" id="song-home" title="Naar begin">⏮</button><button class="btn small" id="zoom-out" aria-label="Uitzoomen">−</button><button class="btn small" id="zoom-in" aria-label="Inzoomen">+</button><button class="btn small" id="add-drums">+ Drumspoor</button><button class="btn small" id="add-inst">+ Instrumentspoor</button><button class="btn small" id="add-audio">+ Audiospoor 🎤</button></div>
     </div>
+    <div class="pl-tools">
+      <div class="chipset" id="pl-tool">
+        <button class="chip active" data-tool="select" title="Selecteren en verplaatsen">⬚ <span>Selecteer</span></button>
+        <button class="chip" data-tool="draw" title="Tekenen: clip plaatsen">✏️ <span>Teken</span></button>
+        <button class="chip" data-tool="slice" title="Knippen">✂️ <span>Knip</span></button>
+        <button class="chip" data-tool="erase" title="Wissen: tik of veeg over clips">🧽 <span>Wis</span></button>
+        <button class="chip" data-tool="mute" title="Clip dempen">🔇 <span>Demp</span></button>
+      </div>
+      <select id="pl-src" class="btn small" aria-label="Wat ✏️ plaatst"><option value="p0">✏️ Pattern A</option><option value="p1">✏️ Pattern B</option><option value="p2">✏️ Pattern C</option><option value="p3">✏️ Pattern D</option><option value="n">✏️ Lege notenclip</option></select>
+      <select id="pl-snap" class="btn small" aria-label="Snap"><option value="bar">Snap: maat</option><option value="beat">Snap: tel</option><option value="1/16">Snap: 1/16</option><option value="off">Snap: uit</option></select>
+      <button class="btn small" id="pl-dup" title="Dupliceren (Ctrl/⌘+B)">⧉ Dupliceer</button><button class="btn small danger" id="pl-del" title="Verwijderen (Delete)">🗑</button>
+    </div>
+    <p class="hint pl-hint" id="pl-hint"></p>
     <div class="tl" id="tl">
       <div class="tl-heads" id="tl-heads"></div>
       <div class="tl-scroll" id="tl-scroll"><div class="tl-spacer" id="tl-spacer"></div><canvas id="tl-canvas"></canvas></div>
     </div>
-    <label class="check"><input type="checkbox" id="song-pattern"> Sequencer-patroon meespelen (wordt mee opgenomen op het drumspoor)</label>
-    <div class="btn-row"><button class="btn small" id="song-undo" disabled>↶ Ongedaan</button><button class="btn small" id="song-redo" disabled>↷ Opnieuw</button><button class="btn small" id="track-clear">Geselecteerd spoor leegmaken</button><button class="btn small" id="song-clear">Song wissen</button><button class="btn small" id="song-midi">↓ Song als MIDI</button><button class="btn small" id="song-wav">↓ Song als WAV</button><select class="btn small wav-fmt" aria-label="WAV-formaat"><option value="24-44100">WAV 24-bit · 44,1 kHz</option><option value="24-48000">WAV 24-bit · 48 kHz</option><option value="16-44100">WAV 16-bit · 44,1 kHz</option></select></div>
+    <label class="check"><input type="checkbox" id="song-pattern"> Patroon meespelen tijdens opnemen (komt als patternclip in de playlist)</label>
+    <div class="btn-row"><button class="btn small" id="song-undo" disabled>↶ Ongedaan</button><button class="btn small" id="song-redo" disabled>↷ Opnieuw</button><button class="btn small" id="track-clear">Spoor leegmaken</button><button class="btn small" id="song-clear">Song wissen</button><button class="btn small" id="song-midi">↓ Song als MIDI</button><button class="btn small" id="song-wav">↓ Song als WAV</button><select class="btn small wav-fmt" aria-label="WAV-formaat"><option value="24-44100">WAV 24-bit · 44,1 kHz</option><option value="24-48000">WAV 24-bit · 48 kHz</option><option value="16-44100">WAV 16-bit · 44,1 kHz</option></select></div>
     <details class="panel sub" id="ed-panel" open><summary><b>Editor</b> <span class="muted" id="ed-title">— kies een spoor</span></summary>
       <div class="ed-tools">
         <div class="chipset" id="ed-tool"><button class="chip active" data-tool="draw" title="Tik = noot plaatsen / verwijderen">✏️ Teken</button><button class="chip" data-tool="select" title="Tik = selecteren, sleep met muis = kader">⬚ Selecteer</button></div>
@@ -220,6 +234,12 @@
   </div></section>
   <div class="foot">MPC Touch Studio · eigen standalone muzieksoftware · geen product van Akai, Image-Line, Ableton of Apple</div>
 </div>
+<div class="tfx" id="tfx" hidden>
+  <div class="tfx-head"><b>Touch FX</b><span class="muted tfx-read" id="tfx-read"></span><span class="spacer"></span><button class="mpc-btn" id="tfx-hold" title="Effect blijft aan na loslaten"><span class="led"></span>HOLD</button><button class="btn small" id="tfx-close" aria-label="Sluiten">✕</button></div>
+  <div class="chipset tfx-modes" id="tfx-modes"></div>
+  <canvas id="tfx-pad" class="tfx-pad" aria-label="XY-vlak: sleep met je vinger"></canvas>
+  <div class="tfx-foot"><span>MPC / controller:</span><button class="btn small" id="tfx-learn-x">X leren</button><button class="btn small" id="tfx-learn-y">Y leren</button><span class="muted" id="tfx-cc"></span></div>
+</div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script src="js/app.js"></script>
 <script src="js/sampler.js"></script>
@@ -228,6 +248,7 @@
 <script src="js/audio.js"></script>
 <script src="js/editor.js"></script>
 <script src="js/connect.js"></script>
+<script src="js/touchfx.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

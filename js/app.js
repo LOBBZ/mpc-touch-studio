@@ -23,7 +23,7 @@ const NAME_TO_NOTE=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','
 const noteLabel=n=>NAME_TO_NOTE[n%12]+(Math.floor(n/12)-1);
 
 /* ---------- Status & opslag ---------- */
-const fresh=()=>({bpm:100,swing:50,swingMpc:true,stepLength:16,activeBank:0,pattern:0,patterns:Array.from({length:4},()=>({})),names:{},vols:{},pans:{},mutes:{},tunes:{},trims:{},wavFmt:'24-44100',master:85,octave:3,instrument:'piano',velMode:'fixed',daw:'fl',midiRoute:'auto',padCh:9,keyCh:0,padBase:36,clockOut:false,clockFollow:false,songMode:false,songPattern:true,songZoom:28,recLatency:-1,edZoom:160,edGrid:'1/16',metro:false,full:false,nr:false,nrRate:'1/16',lev:'off',levSrc:null});
+const fresh=()=>({bpm:100,swing:50,swingMpc:true,stepLength:16,activeBank:0,pattern:0,patterns:Array.from({length:4},()=>({})),names:{},vols:{},pans:{},mutes:{},tunes:{},trims:{},wavFmt:'24-44100',master:85,octave:3,instrument:'piano',velMode:'fixed',daw:'fl',midiRoute:'auto',padCh:9,keyCh:0,padBase:36,clockOut:false,clockFollow:false,songMode:false,songPattern:false,songZoom:28,tfxMode:'filter',tfxCC:{x:null,y:null},plSrc:'p0',plSnap:'beat',recLatency:-1,edZoom:160,edGrid:'1/16',metro:false,full:false,nr:false,nrRate:'1/16',lev:'off',levSrc:null});
 function sanitize(src){const f=fresh();src=src||{};let s={...f,...src};
  if(src.swingMpc!==true){s.swing=Math.round(50+clamp(+src.swing||0,0,65)*.325);s.swingMpc=true} // oude 0–65 → MPC 50–75%
  if(s.velMode==='full'){s.velMode='fixed';s.full=true}
@@ -35,9 +35,9 @@ function sanitize(src){const f=fresh();src=src||{};let s={...f,...src};
  for(const k of ['names','vols','pans','mutes','tunes','trims'])if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]={};
  s.bpm=clamp(parseInt(s.bpm,10)||100,45,240);s.stepLength=s.stepLength===32?32:16;
  s.activeBank=clamp(s.activeBank|0,0,3);s.pattern=clamp(s.pattern|0,0,3);s.master=clamp(+s.master||0,0,100);s.octave=clamp(s.octave|0,1,6);
- if(!['piano','bass','guitar','synth'].includes(s.instrument)&&!/^u:\w+$/.test(s.instrument))s.instrument='piano';if(!['16-44100','24-44100','24-48000'].includes(s.wavFmt))s.wavFmt='24-44100';if(!['fixed','pos'].includes(s.velMode))s.velMode='fixed';s.metro=!!s.metro;s.songMode=!!s.songMode;s.padCh=clamp(Number(s.padCh??9)|0,0,15);s.keyCh=clamp(Number(s.keyCh??0)|0,0,15);s.padBase=clamp(Number(s.padBase??36)|0,0,64);s.clockOut=!!s.clockOut;s.clockFollow=!!s.clockFollow&&!s.clockOut;s.songPattern=s.songPattern!==false;s.songZoom=clamp(+s.songZoom||28,6,240);s.recLatency=clamp(Math.round(Number(s.recLatency??-1)),-1,400);s.edZoom=clamp(+s.edZoom||160,40,1200);if(!['1/4','1/8','1/8T','1/16','1/16T','1/32','off'].includes(s.edGrid))s.edGrid='1/16';if(!['fl','ableton','logic'].includes(s.daw))s.daw='fl';if(!['auto','pads','keys'].includes(s.midiRoute))s.midiRoute='auto';return s}
+ if(!['piano','bass','guitar','synth'].includes(s.instrument)&&!/^u:\w+$/.test(s.instrument))s.instrument='piano';if(!['16-44100','24-44100','24-48000'].includes(s.wavFmt))s.wavFmt='24-44100';if(!['fixed','pos'].includes(s.velMode))s.velMode='fixed';s.metro=!!s.metro;s.songMode=!!s.songMode;s.padCh=clamp(Number(s.padCh??9)|0,0,15);s.keyCh=clamp(Number(s.keyCh??0)|0,0,15);s.padBase=clamp(Number(s.padBase??36)|0,0,64);s.clockOut=!!s.clockOut;s.clockFollow=!!s.clockFollow&&!s.clockOut;s.songPattern=s.songPattern!==false;s.songZoom=clamp(+s.songZoom||28,6,240);if(!['filter','stutter','delay','reverb','gate','lofi','flanger'].includes(s.tfxMode))s.tfxMode='filter';if(!s.tfxCC||typeof s.tfxCC!=='object')s.tfxCC={x:null,y:null};for(const k of ['x','y'])s.tfxCC[k]=Number.isInteger(s.tfxCC[k])&&s.tfxCC[k]>=0&&s.tfxCC[k]<128?s.tfxCC[k]:null;if(!/^(p[0-3]|n)$/.test(s.plSrc||''))s.plSrc='p0';if(!['bar','beat','1/16','off'].includes(s.plSnap))s.plSnap='beat';s.recLatency=clamp(Math.round(Number(s.recLatency??-1)),-1,400);s.edZoom=clamp(+s.edZoom||160,40,1200);if(!['1/4','1/8','1/8T','1/16','1/16T','1/32','off'].includes(s.edGrid))s.edGrid='1/16';if(!['fl','ableton','logic'].includes(s.daw))s.daw='fl';if(!['auto','pads','keys'].includes(s.midiRoute))s.midiRoute='auto';return s}
 let state=fresh();try{const raw=storeGet('mpcts-v2');if(raw)state=sanitize(JSON.parse(raw))}catch(e){state=fresh()}
-let saveTimer=null;function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>storeSet('mpcts-v2',JSON.stringify(state)),120)}
+let saveTimer=null;function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{storeSet('mpcts-v2',JSON.stringify(state));if(typeof songPatternsChanged==='function')songPatternsChanged()},120)}
 const slotKey=(b,i)=>`${b}:${i}`;
 const sampleBuffers=new Map(),sampleNames=new Map();let db=null;
 const nameFor=(b,i)=>state.names[slotKey(b,i)]||sampleNames.get(slotKey(b,i))||SOUNDS[b][i].name;
@@ -59,7 +59,7 @@ function ensureAudio(){
   try{ctx=new AC({latencyHint:'interactive'})}catch(e){ctx=new AC()}
   masterNode=ctx.createGain();masterNode.gain.value=state.master/100;
   const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=7;lim.ratio.value=7;lim.attack.value=.005;lim.release.value=.12;
-  masterNode.connect(lim);lim.connect(ctx.destination)}
+  masterNode.connect(typeof setupTouchFx==='function'?setupTouchFx(ctx,lim):lim);lim.connect(ctx.destination)}
  if(ctx.state!=='running')ctx.resume().catch(()=>{});
  return ctx}
 function unlockAudio(){if(audioUnlocked&&ctx&&ctx.state==='running')return;const c=ensureAudio();if(!c)return;
@@ -161,6 +161,7 @@ function selectWebIn(id){if(midi.in)midi.in.onmidimessage=null;midi.in=id&&midi.
  if(midi.in&&midi.out&&midi.in.name===midi.out.name){midi.in=null;$('#wm-in').value='';toast('Kies een andere poort dan de uitgang');return}
  if(midi.in)midi.in.onmidimessage=onMidiIn;storeSet('mpcts-wm-in',midi.in?midi.in.id:'')}
 function onMidiIn(e){const [st,d1,d2]=e.data;if(st>=0xF0)return;if(typeof midiLed==='function')midiLed('in');const cmd=st&0xf0,ch=st&0x0f;
+ if(cmd===0xB0){if(typeof tfxMidiCC==='function')tfxMidiCC(ch,d1,d2);return}
  const route=state.midiRoute,toPads=route==='pads'||(route==='auto'&&ch===state.padCh);
  if(cmd===0x90&&d2>0){if(toPads){if(route==='pads'){const idx=((d1-state.padBase)%16+16)%16;nrStop('m'+d1);padDown('m'+d1,idx,state.full?127:d2)}else{const n=d1-state.padBase;if(n>=0&&n<64)triggerPad(n>>4,n&15,d2,null,{midiIn:true})}}else instNoteOn(d1,d2,true)}
  else if(cmd===0x80||(cmd===0x90&&d2===0)){if(toPads)nrStop('m'+d1);else instNoteOff(d1,true)}}
