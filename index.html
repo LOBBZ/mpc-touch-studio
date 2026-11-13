@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0b1018">
+<meta name="theme-color" content="#1c2226">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,6 +17,15 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 </head>
 <body data-tab="pads">
+<aside id="browser" class="browser" hidden aria-label="Browser">
+  <div class="br-head"><b>Browser</b><button class="btn small" id="br-add">+ Bestanden</button><button class="btn small" id="br-add-dir">+ Map</button><button class="btn small icon" id="br-close" aria-label="Browser sluiten">✕</button></div>
+  <input id="br-q" type="search" placeholder="Zoeken…" aria-label="Zoek in de browser" autocomplete="off">
+  <div class="br-target" id="br-target"></div>
+  <div class="br-list" id="br-list"></div>
+  <p class="br-tip">▶ luisteren · <b>→ Playlist</b> zet hem bij de gele startmarkering · op een computer kun je slepen naar de playlist of een pad</p>
+  <input type="file" id="br-files" accept="audio/*,.wav,.mp3,.aif,.aiff,.flac,.ogg,.m4a" multiple hidden>
+  <input type="file" id="br-dir" webkitdirectory multiple hidden>
+</aside>
 <div class="app">
   <header class="top">
     <div class="brand"><div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><strong>MPC Touch Studio</strong><small>Sampler · Beat maker · MIDI voor FL Studio, Ableton & Logic</small></div></div>
@@ -26,6 +35,7 @@
   <div class="transport" id="transport">
     <div class="tbar">
       <div class="tgroup">
+        <button class="btn br-btn" id="br-btn" aria-label="Browser met samples (Alt+F8)" title="Browser (Alt+F8)">📁<span class="lbl"> Browser</span></button>
         <button class="btn primary" id="play">▶ Play</button>
         <button class="btn" id="stop" aria-label="Stop">■<span class="lbl"> Stop</span></button>
         <button class="btn" id="rec" aria-label="Opnemen">●<span class="lbl"> Rec</span></button>
@@ -132,9 +142,10 @@
         <select id="ed-grid" class="btn small" aria-label="Raster"><option value="1/4">1/4</option><option value="1/8">1/8</option><option value="1/8T">1/8T</option><option value="1/16">1/16</option><option value="1/16T">1/16T</option><option value="1/32">1/32</option><option value="off">vrij</option></select>
         <button class="btn small" id="ed-zout" aria-label="Uitzoomen">−</button><button class="btn small" id="ed-zin" aria-label="Inzoomen">+</button>
         <span class="ed-sep"></span>
-        <button class="btn small" id="ed-all">Alles</button><button class="btn small" id="ed-copy">Kopieer</button><button class="btn small" id="ed-paste" title="Plakken op de startpositie (gele driehoek)">Plak</button><button class="btn small" id="ed-dup">Dupliceer</button><button class="btn small danger" id="ed-del">Verwijder</button>
+        <span class="ed-notes-only ed-grp"><button class="btn small" id="ed-all">Alles</button><button class="btn small" id="ed-copy">Kopieer</button><button class="btn small" id="ed-paste" title="Plakken op de startpositie (gele driehoek)">Plak</button><button class="btn small" id="ed-dup">Dupliceer</button><button class="btn small danger" id="ed-del">Verwijder</button>
         <button class="btn small" id="ed-quant">Quantize</button><button class="btn small" id="ed-down" title="Omlaag (⇧ = octaaf)">▼</button><button class="btn small" id="ed-up" title="Omhoog (⇧ = octaaf)">▲</button>
-        <label class="ed-vel">Vel <input type="range" id="ed-vel" min="1" max="127" value="100"><output id="ed-vel-val">—</output></label>
+        <label class="ed-vel">Vel <input type="range" id="ed-vel" min="1" max="127" value="100"><output id="ed-vel-val">—</output></label></span>
+        <span id="ed-auto-bar" class="ed-grp" hidden>📈 <select id="ed-auto-target" class="btn small" aria-label="Wat deze automation bestuurt"></select><select id="ed-auto-mode" class="btn small" aria-label="Touch FX-effect"></select><span class="chipset" id="ed-auto-lane"><button class="chip active" data-lane="1">X</button><button class="chip" data-lane="2">Y</button></span><span class="hint" style="margin:0">✏️ tik = punt erbij · tik op punt = weg · sleep = verplaatsen</span></span>
       </div>
       <div class="ed-wrap" id="ed-scroll"><div id="ed-spacer"></div><canvas id="ed-canvas"></canvas></div>
       <p class="hint" id="ed-hint">Teken: tik op een leeg vak = noot, tik op een noot = weg. Sleep een noot om te verplaatsen, sleep de rechterrand om de lengte te veranderen. Sleep op een lege plek om te scrollen.</p>
@@ -250,6 +261,8 @@
 <script src="js/editor.js"></script>
 <script src="js/connect.js"></script>
 <script src="js/touchfx.js"></script>
+<script src="js/automation.js"></script>
+<script src="js/browser.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

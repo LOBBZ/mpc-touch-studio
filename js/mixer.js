@@ -43,7 +43,7 @@ function updateInsertGains(){if(!ctx||!song.inserts)return;for(const s of song.i
 function rerouteTrack(t){const n=liveTrackNodes.get(t.id);if(!n)return;try{n.end.disconnect()}catch(e){}n.end.connect(liveInsertIn(t.insert))}
 /* offline (WAV-export) */
 function makeOfflineRouting(off,master){const ins=new Map();const insIn=id=>{if(!id||!insById(id))return master;let n=ins.get(id);if(!n){n=buildInsertChain(off,insById(id),master,false);ins.set(id,n)}return n.inp};
- return{trackIn:t=>buildTrackStrip(off,t,insIn(t.insert)).inp}}
+ return{trackIn:t=>buildTrackStrip(off,t,insIn(t.insert)).inp,insNode:id=>{insIn(id);return ins.get(id)}}}
 
 /* ---------- UI ---------- */
 const MIX={sel:0};
@@ -56,9 +56,9 @@ function renderMixer(){const root=$('#mix-strips');if(!root||!song.inserts)retur
   const nm=d.querySelector('.mx-name');
   if(isM)nm.textContent='MASTER';else{const inp=document.createElement('input');inp.type='text';inp.maxLength=16;inp.value=s.name;inp.onchange=()=>{s.name=inp.value.trim().slice(0,16)||s.name;inp.value=s.name;saveSongSoon()};nm.append(inp);const num=document.createElement('span');num.textContent=id;nm.prepend(num)}
   const fd=d.querySelector('.mx-fader'),db=d.querySelector('.mx-db'),pan=d.querySelector('.mx-pan');
-  if(isM){fd.value=state.master;db.textContent=state.master+'%';pan.hidden=true;d.querySelector('.mx-btns').style.visibility='hidden';fd.oninput=()=>{state.master=+fd.value;db.textContent=state.master+'%';if(masterNode)masterNode.gain.setTargetAtTime(state.master/100,ctx.currentTime,.02);save()}}
-  else{fd.value=s.vol;db.textContent=dbStr(s.vol);pan.value=s.pan;fd.oninput=()=>{s.vol=+fd.value;db.textContent=dbStr(s.vol);updateInsertGains();saveSongSoon()};fd.ondblclick=()=>{s.vol=80;fd.value=80;db.textContent=dbStr(80);updateInsertGains();saveSongSoon()};
-   pan.oninput=()=>{s.pan=+pan.value;updateInsertGains();saveSongSoon()};pan.ondblclick=()=>{s.pan=0;pan.value=0;updateInsertGains();saveSongSoon()};
+  if(isM){fd.value=state.master;db.textContent=state.master+'%';pan.hidden=true;d.querySelector('.mx-btns').style.visibility='hidden';fd.oninput=()=>{state.master=+fd.value;db.textContent=state.master+'%';recAuto('master:vol',[state.master/100]);if(masterNode)masterNode.gain.setTargetAtTime(state.master/100,ctx.currentTime,.02);save()}}
+  else{fd.value=s.vol;db.textContent=dbStr(s.vol);pan.value=s.pan;fd.oninput=()=>{s.vol=+fd.value;db.textContent=dbStr(s.vol);recAuto(`ins:${id}:vol`,[s.vol/125]);updateInsertGains();saveSongSoon()};fd.ondblclick=()=>{s.vol=80;fd.value=80;db.textContent=dbStr(80);updateInsertGains();saveSongSoon()};
+   pan.oninput=()=>{s.pan=+pan.value;recAuto(`ins:${id}:pan`,[(s.pan+100)/200]);updateInsertGains();saveSongSoon()};pan.ondblclick=()=>{s.pan=0;pan.value=0;updateInsertGains();saveSongSoon()};
    const mb=d.querySelector('[data-a=mute]'),sb=d.querySelector('[data-a=solo]');mb.classList.toggle('on',s.mute);sb.classList.toggle('on',s.solo);
    mb.onclick=()=>{s.mute=!s.mute;mb.classList.toggle('on',s.mute);updateInsertGains();saveSongSoon()};sb.onclick=()=>{s.solo=!s.solo;sb.classList.toggle('on',s.solo);updateInsertGains();saveSongSoon()}}
   d.querySelector('.mx-route').textContent=isM?'reverb · delay':(routed.length?'← '+routed.join(', '):'');
@@ -90,6 +90,6 @@ function startMeters(){if(meterRAF)return;if(!masterAn&&ctx&&masterNode){masterA
   for(const cv of $$('#mix-strips .mx-meter')){const id=+cv.closest('.mx').dataset.id;let an=null;if(id===0)an=masterAn;else{const n=liveInsertNodes.get(id);an=n&&n.an}
    let lvl=0;if(an){an.getFloatTimeDomainData(meterBuf);for(let i=0;i<meterBuf.length;i++){const v=Math.abs(meterBuf[i]);if(v>lvl)lvl=v}}
    const prev=meterPeak.get(id)||0,show=Math.max(lvl,prev*.9);meterPeak.set(id,show);
-   const g=cv.getContext('2d'),H=cv.height,W=cv.width,h=Math.min(1,show)*H;g.clearRect(0,0,W,H);g.fillStyle='#0b1018';g.fillRect(0,0,W,H);
+   const g=cv.getContext('2d'),H=cv.height,W=cv.width,h=Math.min(1,show)*H;g.clearRect(0,0,W,H);g.fillStyle='#171c1f';g.fillRect(0,0,W,H);
    const gr=g.createLinearGradient(0,H,0,0);gr.addColorStop(0,'#8fd14f');gr.addColorStop(.7,'#e6d84f');gr.addColorStop(.92,'#ff6577');g.fillStyle=gr;g.fillRect(2,H-h,W-4,h)}
   meterRAF=requestAnimationFrame(loop)};meterRAF=requestAnimationFrame(loop)}
