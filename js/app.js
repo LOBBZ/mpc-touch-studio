@@ -408,7 +408,7 @@ async function makeZip(name,blob){const data=new Uint8Array(await blob.arrayBuff
  const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(12,dt,true);ch.setUint16(14,dd,true);ch.setUint32(16,crc,true);ch.setUint32(20,sz,true);ch.setUint32(24,sz,true);ch.setUint16(28,fn.length,true);
  const cdOff=30+fn.length+sz,cdSize=46+fn.length,end=new DataView(new ArrayBuffer(22));end.setUint32(0,0x06054b50,true);end.setUint16(8,1,true);end.setUint16(10,1,true);end.setUint32(12,cdSize,true);end.setUint32(16,cdOff,true);
  return new Blob([lh.buffer,fn,data,ch.buffer,fn,end.buffer],{type:'application/zip'})}
-async function deliver(blob,name){const dl=await getDownloads();
+async function deliver(blob,name){if(isNativeApp())return deliverNative(blob,name);const dl=await getDownloads();
  if(dl){let fname=name,data=blob;if(!/\.(json|txt|csv|zip)$/i.test(name)){data=await makeZip(name,blob);fname=name.replace(/\.[^.]+$/,'')+'.zip'}
   try{await dl.save({filename:fname,data});return true}catch(e){if(e&&e.code==='declined')return false;toast('Opslaan lukte niet'+(e&&e.message?': '+e.message:''));return false}}
  let file=null;try{file=new File([blob],name,{type:blob.type||'application/octet-stream'})}catch(e){}
@@ -530,3 +530,13 @@ const tp=$('#transport');if('IntersectionObserver' in window){const s=document.c
 
 
 
+
+/* ---------- Android-app (Capacitor): opslaan in Documenten/MPC Touch Studio + Android-deelmenu ---------- */
+function isNativeApp(){try{return !!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())}catch(e){return false}}
+async function blobToB64Chunks(blob,size=3*1024*1024){const out=[];for(let o=0;o<blob.size;o+=size){const ab=await blob.slice(o,o+size).arrayBuffer(),u=new Uint8Array(ab);let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));out.push(btoa(s))}return out}
+async function deliverNative(blob,name){const P=Capacitor.Plugins||{},FS=P.Filesystem,SH=P.Share;if(!FS){toast('Opslaan is niet beschikbaar in deze app-versie');return false}
+ try{toast('Opslaan…',null,1500);const parts=await blobToB64Chunks(blob),write=async(dir,path)=>{await FS.writeFile({path,data:parts[0]||'',directory:dir,recursive:true});for(let i=1;i<parts.length;i++)await FS.appendFile({path,data:parts[i],directory:dir});return(await FS.getUri({path,directory:dir})).uri};
+  let saved=null;try{saved=await write('DOCUMENTS','MPC Touch Studio/'+name)}catch(e){console.warn('Documents',e)}
+  const uri=await write('CACHE',name),share=()=>SH&&SH.share({title:name,files:[uri],dialogTitle:'Bewaar of deel '+name}).catch(()=>{});
+  toast(saved?`${name} staat in Documenten › MPC Touch Studio`:`${name} is klaar`,SH?{label:'Delen…',fn:share}:null,7000);if(!saved)share();return true}
+ catch(e){toast('Opslaan mislukt: '+(e.message||e));return false}}

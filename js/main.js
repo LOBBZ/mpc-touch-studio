@@ -7,5 +7,6 @@ window.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey||e.repea
 renderAll();loadSamples();renderConnect();
 
 /* Offline-app (PWA). Niet in de claude.ai-weergave, niet via file:// (Electron). */
-(function(){try{const inFrame=window.self!==window.top;
- if('serviceWorker' in navigator&&!inFrame&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}})();
+(function(){try{const inFrame=window.self!==window.top,native=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+ if(native&&navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(r=>r.forEach(x=>x.unregister())).catch(()=>{});
+ if('serviceWorker' in navigator&&!inFrame&&!native&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}})();
