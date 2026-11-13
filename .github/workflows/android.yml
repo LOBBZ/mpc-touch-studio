@@ -1,0 +1,70 @@
+name: Android-APK bouwen
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Pakketten installeren
+        run: npm install --no-audit --no-fund
+      - name: Android-project maken (Capacitor)
+        run: |
+          npx cap add android
+          mkdir -p assets
+          cp www/icons/icon-1024.png assets/icon-only.png
+          cp www/icons/icon-1024.png assets/icon-foreground.png
+          printf '%s' '<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect width="1024" height="1024" fill="#1c2226"/></svg>' > assets/icon-background.svg
+          npx --yes @capacitor/assets@3 generate --android --iconBackgroundColor '#1c2226' --splashBackgroundColor '#1c2226' --splashBackgroundColorDark '#1c2226' || echo "Iconen overgeslagen"
+          npx cap sync android
+      - name: Rechten (microfoon) en versienummer
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-feature android:name="android.hardware.microphone" android:required="false" />#' $M
+          grep -n "permission\|feature" $M
+          V=$(node -p "require('./package.json').version")
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"$V\"/" android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
+      - name: APK bouwen
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Ondertekenen
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PW: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          BT=$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
+          if [ -n "$KS_B64" ]; then echo "$KS_B64" | base64 -d > ks.p12; PW="$KS_PW"; AL="${KS_ALIAS:-mpc}"; echo "Eigen sleutel"; else cp android-signing/public-test.p12 ks.p12; PW=mpctouchstudio; AL=mpc; echo "Test-sleutel"; fi
+          V=$(node -p "require('./package.json').version")
+          $BT/zipalign -p -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          mkdir -p out
+          $BT/apksigner sign --ks ks.p12 --ks-pass "pass:$PW" --key-pass "pass:$PW" --ks-key-alias "$AL" --out "out/MPC-Touch-Studio-$V.apk" aligned.apk
+          $BT/apksigner verify --print-certs out/*.apk | head -3
+          ls -la out
+      - name: Bestanden bewaren
+        uses: actions/upload-artifact@v4
+        with:
+          name: MPC-Touch-Studio-Android
+          path: out/*.apk
+      - name: Release maken
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}-android
+          name: MPC Touch Studio voor Android (build ${{ github.run_number }})
+          make_latest: false
+          body: |
+            **MPC-Touch-Studio-….apk**: open dit bestand op je telefoon (bijv. Samsung S25) en tik Installeren.
+            Eerste keer: sta "Installeren van onbekende apps" toe voor je browser of Mijn bestanden.
+          files: out/*.apk

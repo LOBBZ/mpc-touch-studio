@@ -43,26 +43,16 @@ MIDI werkt direct in de app (MPC/keyboard via USB; naar FL Studio via loopMIDI).
 Zelf bouwen: Node.js 20 installeren, dan `npm install` en `npm run build:win` → bestanden in `dist/`.
 
 ## 3. Android-APK
+Download de nieuwste APK: **https://github.com/LOBBZ/mpc-touch-studio/releases** (de release "voor Android").
+1. Open het `.apk`-bestand op je telefoon en tik **Installeren**. De eerste keer vraagt Android om "Installeren van onbekende apps" toe te staan.
+2. Updates installeren gewoon over de vorige versie heen.
 
-Vereist: Node.js LTS, [Android Studio](https://developer.android.com/studio) en JDK 17.
+Opslaan: WAV, MIDI en projecten komen in **Documenten › MPC Touch Studio**, en via **Delen…** stuur je ze naar Drive, WhatsApp of FL Studio Mobile.
+Elke push naar `main` bouwt automatisch een nieuwe APK (GitHub Actions → `.github/workflows/android.yml`). Ondertekening: zie `android-signing/README.md`.
 
-```bash
-npm install
-npx cap add android      # eenmalig: maakt de map android/
-npx cap sync android     # na elke wijziging in www/
-npx cap open android     # opent Android Studio → Build → Build APK(s)
-```
+Let op: de Android-WebView heeft geen Web MIDI. Voor een MPC/keyboard via USB gebruik je de app in **Chrome** (https://lobbz.github.io/mpc-touch-studio/, "Toevoegen aan startscherm"). VST3 via de bridge op je pc werkt wel vanuit de APK (zelfde wifi).
 
-Zonder Android Studio-scherm: `cd android && ./gradlew assembleDebug`. De APK staat dan in `android/app/build/outputs/apk/debug/app-debug.apk`.
-
-**Microfoon (audiosporen):** voeg na `npx cap add android` deze twee regels toe aan `android/app/src/main/AndroidManifest.xml`, boven `<application`:
-
-```xml
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
-<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-```
-
-Let op: de Android-WebView heeft **geen Web MIDI**. Pads, sequencer, Song-modus en export werken wel. MIDI naar je DAW gaat op Android via de MIDI/WAV-export.
+Zelf bouwen: Node.js 20 + Android Studio (JDK 17), dan `npm install`, `npx cap add android`, `npx cap sync android`, `npx cap open android`.
 
 ## Playlist (zoals in FL Studio)
 
