@@ -87,7 +87,7 @@ Tabblad **Playlist**. Zet de transportknop op **SONG** (PAT = alleen het patroon
 **Opnemen:** arm een spoor met **R**, druk op ● Rec en ▶ Play. Elke opname wordt een nieuwe clip; een tweede opname is een overdub. Er is geen lengtelimiet.
 - Met *Patroon meespelen* komt het meespelende patroon als patternclip in de playlist.
 
-**Sporen:** drums (pads), instrument (piano, bas, gitaar, synth of je eigen ★-instrument) en audio (microfoon). Per spoor heb je R, M, S, volume en FX.
+**Sporen:** de playlist heeft standaard **50 sporen** (Drums, Keys, Zang, Track 4–50), en je kunt er meer bijmaken. Zoals in FL mag elke clip op elk spoor. Het soort spoor bepaalt alleen wat je erop **opneemt**: tik op het label **PADS / INST / AUDIO** om het te wisselen. Per spoor heb je R, M, S, volume, instrument en FX. De playlist scrollt verticaal en de liniaal blijft bovenaan staan.
 
 **Exporteren:** *Song als MIDI* (één MIDI-spoor per spoor) of *Song als WAV* (mixdown met audio en effecten).
 

@@ -13,8 +13,8 @@ const ED_RULER=22,ED_LBL=58,PR_HI=108,PR_LO=21;
 const edEl={scroll:$('#ed-scroll'),spacer:$('#ed-spacer'),canvas:$('#ed-canvas')};
 /* De editor bewerkt één notenclip uit de playlist (zoals de piano roll in FL). Doel = schijn-spoor met de clip-noten. */
 function edTrack(){const T=ED.target;if(!T)return null;let tr=T._track,c=T._clip;if(!song.tracks.includes(tr)||!tr.clips.includes(c)){tr=song.tracks.find(x=>x.id===T.id);c=tr&&tr.clips.find(x=>'c'+x.id===T.key&&x.kind==='notes');if(!c){ED.target=null;return null}T._track=tr;T._clip=c}
- T.events=c.events;T.color=tr.color;T.inst=tr.inst;T.name=`${tr.name} · ${c.name||'clip'}`;T.base=c.start;return T}
-function edOpenClip(tr,c,quiet){if(c.kind!=='notes')return;ED.sel.clear();ED.target={id:tr.id,key:'c'+c.id,type:tr.type,color:tr.color,inst:tr.inst,name:'',events:c.events,base:c.start,_track:tr,_clip:c};
+ T.events=c.events;T.type=c.nt||(tr.type==='drums'?'drums':'inst');T.color=tr.color;T.inst=tr.inst;T.name=`${tr.name} · ${c.name||'clip'}`;T.base=c.start;return T}
+function edOpenClip(tr,c,quiet){if(c.kind!=='notes')return;ED.sel.clear();ED.target={id:tr.id,key:'c'+c.id,type:c.nt||(tr.type==='drums'?'drums':'inst'),color:tr.color,inst:tr.inst,name:'',events:c.events,base:c.start,_track:tr,_clip:c};
  const p=$('#ed-panel');renderEditor();if(!quiet){p.open=true;layoutEd();drawEd();p.scrollIntoView({behavior:'smooth',block:'nearest'})}}
 const edBase=()=>ED.target?ED.target._clip.start:0;
 const gridTicks=()=>GRIDS[state.edGrid]||T16;
