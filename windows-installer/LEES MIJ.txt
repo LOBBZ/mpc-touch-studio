@@ -1,0 +1,24 @@
+MPC Touch Studio voor Windows
+=============================
+
+INSTALLEREN (1 minuut)
+1. Klik met rechts op de zip > "Alles uitpakken..." > Uitpakken.
+2. Dubbelklik op "Installeren.bat" in de uitgepakte map.
+   - Zegt Windows "Windows heeft uw pc beschermd"? Klik "Meer info" > "Toch uitvoeren".
+     (De app is niet betaald-gesigneerd; dat is normaal voor eigen software.)
+3. De app installeert zonder vragen en start vanzelf.
+   Daarna staat "MPC Touch Studio" op je bureaublad en in het Startmenu.
+
+Liever zelf kiezen waar hij komt? Dubbelklik dan direct op MPC-Touch-Studio-Setup-x.y.z.exe.
+
+WAT ZIT ERIN
+- De hele DAW: playlist, Channel Rack, piano roll, mixer met effecten, AI Mix & Master, AI-assistent.
+- De VST3-bridge start vanzelf mee: Mixer > FX > VST3-plugins > Verbinden laadt je eigen plugins
+  (Pro-Q, Valhalla, sonible, iZotope ...) uit C:\Program Files\Common Files\VST3.
+- MIDI: je MPC/keyboard via USB werkt direct. Naar FL Studio: installeer loopMIDI en kies die poort
+  in de app onder DAW / MIDI.
+
+VERWIJDEREN
+Instellingen > Apps > MPC Touch Studio > Verwijderen.
+
+Nieuwste versie: https://github.com/LOBBZ/mpc-touch-studio/releases
