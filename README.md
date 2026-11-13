@@ -87,6 +87,15 @@ Dubbeltik een notenclip om hem te openen.
 - **Per spoor:** EQ (laag/mid/hoog), compressor, reverb- en delay-send en pan.
 - **Master:** reverb en een delay die meeloopt met de BPM.
 
+## 💬 AI-assistent (praat met de app)
+Tik op de paarse **💬**-knop. Zeg in gewone taal wat je wilt (typen of 🎤 inspreken waar de browser dat kan):
+- "Maak een trap-beat op 140 BPM met 808 en hi-hat rolls", "zet er jazzy akkoorden onder (Cm9 – Abmaj7 – Fm9 – G7alt)"
+- "Zet Pro-Q op de zang en haal 300 Hz eruit", "open Valhalla op de master", "AI Mix en master voor Spotify"
+- "Hoe klinkt mijn mix vergeleken met de referentie?" → meet LUFS, true peak, dynamiek, stereo en klankbalans per band en geeft genre-advies met frequenties, dB en ratio's
+- **📎 Referentietrack**: laad een nummer dat je goed vindt klinken; de AI vergelijkt je mix ermee en AI Master kan het klankbeeld en de luidheid ervan volgen (doel "Zoals de referentietrack", genre "📎 Referentietrack").
+
+De assistent draait op **Claude** met je eigen Anthropic API-sleutel (⚙️; maak er een op console.anthropic.com; je betaalt per gebruik). De sleutel blijft op je apparaat. Alles wat hij doet is met ↶ Ongedaan terug te draaien.
+
 ## Effecten, AI Mix & Master en VST3
 **Effect-slots** (Mixer → FX bij een insert of de master, tot 10 per insert): Pro EQ (8 banden, sleep de punten in de curve, analyzer, low/high cut tot 48 dB/oct), Compressor (met parallel-mix), Multiband, Saturator (tape/buis/hard/fuzz), De-esser, Gate, Transient shaper, Reverb (room/chamber/hall/plate/vintage/kathedraal/spring), Delay (ping-pong, tempo-sync), Chorus/Flanger, Stereo Imager (met bas mono), Utility en een Limiter met lookahead en true-peak plafond. Alles klinkt ook in de WAV-export.
 

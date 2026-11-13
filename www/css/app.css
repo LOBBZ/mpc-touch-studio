@@ -490,3 +490,24 @@ body.pl-full #ed-panel[open] #ed-hint,body.pl-full #ed-panel[open] #ed-audio{dis
 .fx-body>.ai-panel,.fx-body>.vst-panel{grid-column:1/-1}
 .vst-row input,.vst-row select{min-width:0;max-width:100%}
 .ai-report{overflow-x:auto}
+
+/* ===== AI-assistent ===== */
+.asst-btn{position:fixed;right:max(12px,var(--sr));bottom:calc(14px + var(--sb) + var(--tabs-h,0px));z-index:70;border:0;border-radius:24px;padding:10px 16px;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,#8a5cff,#5b3fc4);box-shadow:0 6px 18px #0009}
+.asst-btn.active{background:linear-gradient(135deg,#ffb35c,#e58216);color:#241200}
+@media (max-width:720px){.asst-btn{bottom:calc(74px + var(--sb))}.asst-btn span{display:none}}
+.asst{position:fixed;right:max(8px,var(--sr));bottom:calc(8px + var(--sb));z-index:80;width:min(430px,calc(100vw - 16px));height:min(680px,calc(100dvh - 16px - var(--st)));display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:linear-gradient(#2a2640,#1e1b2c);border:1px solid #5b3fc4;box-shadow:0 12px 40px #000c}
+.asst[hidden]{display:none}
+@media (max-width:720px){.asst{left:0;right:0;bottom:0;width:auto;height:calc(100dvh - var(--st));border-radius:14px 14px 0 0}}
+.asst-head{display:flex;gap:6px;align-items:center}.asst-head b{flex:1;color:#d7c8ff;font-size:15px}
+.asst-setup{background:#17151f;border-radius:8px;padding:8px;font-size:13px}.asst-setup[hidden]{display:none}.asst-setup p{margin:0 0 6px}.asst-setup a{color:#b9a3ff}
+.asst-ref{display:flex;gap:6px;align-items:center;font-size:12px;flex-wrap:wrap}.asst-ref>span{flex:1;min-width:0}
+.asst-msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:2px}
+.am{max-width:92%;padding:8px 10px;border-radius:10px;font-size:14px;line-height:1.4;white-space:normal;word-wrap:break-word}
+.am ul{margin:4px 0;padding-left:18px}.am code{background:#0006;padding:0 4px;border-radius:4px}
+.am-user{align-self:flex-end;background:#5b3fc4;color:#fff;white-space:pre-wrap}
+.am-assistant{align-self:flex-start;background:#2f2b45}
+.am-tool{align-self:flex-start;background:none;color:#a99ad6;font-size:12px;padding:1px 6px}
+.am-error{align-self:flex-start;background:#4a1f26;color:#ffb3b3;font-size:13px}
+.asst-think{font-size:12px;color:var(--amber)}.asst-think[hidden]{display:none}
+.asst-in{display:flex;gap:6px;align-items:flex-end}.asst-in textarea{flex:1;resize:none;border-radius:10px;border:1px solid #3f3860;background:#14121c;color:var(--text);padding:8px;font:inherit;font-size:15px}
+#asst-mic.active{background:#c43a4f;color:#fff}
