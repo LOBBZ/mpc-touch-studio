@@ -23,21 +23,7 @@ function updateBuses(){if(!ctx)return;const b=busCache.get(ctx);if(!b)return;con
  b.revOut.gain.setTargetAtTime(mf.revLvl/100*.8,now,.03);b.dl.delayTime.setTargetAtTime(60/state.bpm*DLY_DIVS[mf.dlyDiv],now,.05);b.fb.gain.setTargetAtTime(mf.dlyFb/100,now,.03);b.dlyOut.gain.setTargetAtTime(mf.dlyLvl/100*.7,now,.03)}
 
 function setComp(comp,f){if(f.comp){comp.threshold.value=f.thr;comp.ratio.value=f.ratio;comp.knee.value=6;comp.attack.value=.008;comp.release.value=.15}else{comp.threshold.value=0;comp.ratio.value=1;comp.knee.value=0}}
-/* Spoorketen: inp → EQ → compressor → fader (g) → pan → master, met post-fader sends naar reverb en delay */
-function buildTrackChain(c,t,master){const f=fxOf(t),inp=c.createGain();
- const lo=c.createBiquadFilter();lo.type='lowshelf';lo.frequency.value=180;lo.gain.value=f.low;
- const mid=c.createBiquadFilter();mid.type='peaking';mid.frequency.value=f.midF;mid.Q.value=.9;mid.gain.value=f.mid;
- const hi=c.createBiquadFilter();hi.type='highshelf';hi.frequency.value=6000;hi.gain.value=f.high;
- const comp=c.createDynamicsCompressor();setComp(comp,f);
- const g=c.createGain();g.gain.value=trackGainVal(t);
- inp.connect(lo);lo.connect(mid);mid.connect(hi);hi.connect(comp);comp.connect(g);
- let end=g,p=null;if(c.createStereoPanner){p=c.createStereoPanner();p.pan.value=t.pan/100;g.connect(p);end=p}end.connect(master);
- const bus=getBuses(c,master),rs=c.createGain(),ds=c.createGain();rs.gain.value=f.rev/100;ds.gain.value=f.dly/100;end.connect(rs);rs.connect(bus.revIn);end.connect(ds);ds.connect(bus.dlyIn);
- return{inp,lo,mid,hi,comp,g,p,rs,ds}}
-function updateTrackFx(t){const n=liveTrackNodes.get(t.id);if(!n||!ctx)return;const f=fxOf(t),now=ctx.currentTime,s=(prm,v)=>prm.setTargetAtTime(v,now,.02);
- s(n.lo.gain,f.low);s(n.mid.gain,f.mid);s(n.mid.frequency,f.midF);s(n.hi.gain,f.high);setComp(n.comp,f);s(n.rs.gain,f.rev/100);s(n.ds.gain,f.dly/100);if(n.p)s(n.p.pan,t.pan/100)}
-
-/* ---------- FX-paneel ---------- */
+/* Gedeelde schuif-UI */
 const FX_FIELDS=[
  ['low','Laag (180 Hz)',-12,12,.5,v=>`${v>0?'+':''}${v} dB`],
  ['mid','Mid',-12,12,.5,v=>`${v>0?'+':''}${v} dB`],
@@ -51,20 +37,5 @@ function fxSlider(label,min,max,step,val,fmt,on){const w=document.createElement(
  w.innerHTML='<span class="fx-l"></span><input type="range"><output></output>';w.querySelector('.fx-l').textContent=label;
  const r=w.querySelector('input'),o=w.querySelector('output');r.min=min;r.max=max;r.step=step;r.value=val;o.textContent=fmt(+val);
  r.oninput=()=>{o.textContent=fmt(+r.value);on(+r.value)};return w}
-function renderFxPanel(){const box=$('#fx-body');if(!box)return;box.innerHTML='';const t=song.tracks.find(x=>x.id===selTrack);
- const sec=(title)=>{const s=document.createElement('div');s.className='fx-sec';const h=document.createElement('h3');h.textContent=title;s.append(h);box.append(s);return s};
- if(t){const f=fxOf(t),s=sec(`Spoor: ${t.name}`);
-  s.append(fxSlider('Pan',-100,100,1,t.pan,v=>v===0?'C':(v<0?'L':'R')+Math.abs(v),v=>{t.pan=v;updateTrackFx(t);saveSongSoon()}));
-  for(const [k,l,mn,mx,st,fmt] of FX_FIELDS){if(k==='thr')s.append(compToggle(t,f));s.append(fxSlider(l,mn,mx,st,f[k],fmt,v=>{f[k]=v;updateTrackFx(t);saveSongSoon()}))}
-  const rb=document.createElement('button');rb.className='btn small';rb.textContent='FX resetten';rb.onclick=()=>{pushHistory();t.fx=FX_DEFAULT();t.pan=0;updateTrackFx(t);renderFxPanel();saveSongSoon()};s.append(rb)}
- const mf=masterFx(),m=sec('Master-effecten');
- m.append(fxSlider('Reverb-lengte',.3,6,.1,mf.revDecay,v=>v.toFixed(1)+' s',v=>{mf.revDecay=v;clearTimeout(renderFxPanel.t);renderFxPanel.t=setTimeout(updateBuses,250);saveSongSoon()}));
- m.append(fxSlider('Reverb-niveau',0,150,1,mf.revLvl,v=>v+'%',v=>{mf.revLvl=v;updateBuses();saveSongSoon()}));
- const dw=document.createElement('label');dw.className='fx-f';dw.innerHTML='<span class="fx-l">Delay-tijd</span><select></select><output></output>';
- const sel=dw.querySelector('select');for(const d of Object.keys(DLY_DIVS)){const o=document.createElement('option');o.value=d;o.textContent=d.replace('D',' punt').replace('T',' triool');sel.append(o)}sel.value=mf.dlyDiv;sel.onchange=()=>{mf.dlyDiv=sel.value;updateBuses();saveSongSoon()};m.append(dw);
- m.append(fxSlider('Delay-feedback',0,90,1,mf.dlyFb,v=>v+'%',v=>{mf.dlyFb=v;updateBuses();saveSongSoon()}));
- m.append(fxSlider('Delay-niveau',0,150,1,mf.dlyLvl,v=>v+'%',v=>{mf.dlyLvl=v;updateBuses();saveSongSoon()}))}
-function compToggle(t,f){const w=document.createElement('label');w.className='fx-f fx-check';w.innerHTML='<span class="fx-l">Compressor</span><input type="checkbox"><output></output>';
- const c=w.querySelector('input'),o=w.querySelector('output');c.checked=f.comp;o.textContent=f.comp?'aan':'uit';c.onchange=()=>{f.comp=c.checked;o.textContent=f.comp?'aan':'uit';updateTrackFx(t);saveSongSoon()};return w}
-
-$('#fx-panel').addEventListener('toggle',()=>{if($('#fx-panel').open)renderFxPanel()});
+function compToggle(f,on){const w=document.createElement('label');w.className='fx-f fx-check';w.innerHTML='<span class="fx-l">Compressor</span><input type="checkbox"><output></output>';
+ const c=w.querySelector('input'),o=w.querySelector('output');c.checked=f.comp;o.textContent=f.comp?'aan':'uit';c.onchange=()=>{f.comp=c.checked;o.textContent=f.comp?'aan':'uit';on()};return w}

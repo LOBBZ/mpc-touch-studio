@@ -38,13 +38,13 @@
         <button class="btn small" id="tap">Tap</button>
       </div>
       <div class="ctrl swing"><label for="swing">Swing</label><input id="swing" type="range" min="50" max="75" step="1" value="50"><output id="swing-val">50%</output></div>
-      <span class="spacer"></span><span class="badge" id="pattern-indicator">PATTERN A · 16 STEPS</span>
+      <div class="pattern-picks pat-bar tb-pat"></div><span class="spacer"></span><span class="badge" id="pattern-indicator">PATTERN A · 16 STEPS</span>
     </div>
   </div>
 
   <nav class="tabs" aria-label="Onderdelen">
     <button class="tab active" data-tab="pads"><i>▦</i><span>Pads</span></button>
-    <button class="tab" data-tab="sequence"><i>▤</i><span>Sequencer</span></button>
+    <button class="tab" data-tab="sequence"><i>▤</i><span>Channel Rack</span></button>
     <button class="tab" data-tab="song"><i>☰</i><span>Playlist</span></button>
     <button class="tab" data-tab="keys"><i>♬</i><span>Piano</span></button>
     <button class="tab" data-tab="mixer"><i>☷</i><span>Mixer</span></button>
@@ -94,8 +94,8 @@
   </section>
 
   <section id="view-sequence" class="page"><div class="panel">
-    <div class="panel-head"><h2>Step sequencer</h2><div class="chipset pattern-picks"></div></div>
-    <div class="seq-actions"><div class="chipset bank-picks"></div><select id="step-length" class="btn small" aria-label="Lengte"><option value="16">16 stappen · 1 maat</option><option value="32">32 stappen · 2 maten</option></select><button class="btn small" id="clear-pattern">Wissen</button><button class="btn small" id="random-hats">Hi-hat vullen</button><button class="btn small" id="copy-pattern">Kopieer → volgend patroon</button></div>
+    <div class="panel-head"><h2>Channel Rack</h2><div class="pattern-picks pat-bar"></div></div>
+    <div class="seq-actions"><div class="chipset bank-picks"></div><select id="step-length" class="btn small" aria-label="Lengte"><option value="16">16 stappen · 1 maat</option><option value="32">32 stappen · 2 maten</option></select><button class="btn small" id="clear-pattern">Wissen</button><button class="btn small" id="random-hats">Hi-hat vullen</button><button class="btn small" id="copy-pattern">⧉ Kloon patroon</button></div>
     <div class="step-scroll"><table class="step-grid" id="step-grid" aria-label="Beat sequencer"></table></div>
     <div class="btn-row"><button class="btn small" id="export-midi">↓ Exporteer MIDI</button><button class="btn small" id="export-wav">↓ Exporteer WAV</button><select class="btn small wav-fmt" aria-label="WAV-formaat"><option value="24-44100">WAV 24-bit · 44,1 kHz</option><option value="24-48000">WAV 24-bit · 48 kHz</option><option value="16-44100">WAV 16-bit · 44,1 kHz</option></select><button class="btn small" id="save-project">↓ Bewaar project</button><label class="btn small" style="display:flex;align-items:center;cursor:pointer">↑ Open project<input id="load-project" type="file" accept=".json,application/json" hidden></label></div>
     <p class="hint">Tik op stappen om beats te programmeren. Op iPhone/iPad opent export het deelmenu: AirDrop naar je Mac of bewaar in Bestanden. WAV bevat twee herhalingen van het patroon.</p>
@@ -140,7 +140,7 @@
       <p class="hint" id="ed-hint">Teken: tik op een leeg vak = noot, tik op een noot = weg. Sleep een noot om te verplaatsen, sleep de rechterrand om de lengte te veranderen. Sleep op een lege plek om te scrollen.</p>
       <div class="ed-audio" id="ed-audio" hidden><label class="fx-f"><span class="fx-l">Opname-latentie</span><input type="range" id="lat" min="-1" max="300" step="1"><output id="lat-val">auto</output></label></div>
     </details>
-    <details class="panel sub" id="fx-panel"><summary><b>Effecten</b> <span class="muted">— EQ, compressor, reverb, delay</span></summary><div id="fx-body" class="fx-body"></div></details>
+    <details class="panel sub" id="fx-panel"><summary><b>Mixer-routing</b> <span class="muted">— naar welke mixer-insert gaat het gekozen spoor</span></summary><div id="fx-body" class="fx-body"></div></details>
     <p class="hint">Zet de modus op <b>Song</b>, arm een spoor met <b>R</b> en druk op ● Rec en ▶ Play. Er is geen lengtelimiet: neem 7 minuten of langer op. Pads gaan naar het eerste gearmde drumspoor, het klavier (en je MIDI-keyboard) naar het eerste gearmde instrumentspoor. Nogmaals opnemen = overdub. Tik op de liniaal om de startpositie te kiezen.</p>
   </div></section>
 
@@ -158,9 +158,9 @@
   </div></section>
 
   <section id="view-mixer" class="page"><div class="panel">
-    <div class="panel-head"><h2>Pad mixer</h2><div class="chipset bank-picks"></div></div>
-    <div class="field" style="max-width:360px"><label for="master">Mastervolume · <output id="master-val">85%</output></label><input id="master" type="range" min="0" max="100" value="85"></div>
-    <div id="mix-grid" class="mix-grid"></div><p class="hint">Vol/Pan werkt lokaal. Met MIDI-verbinding sturen de volumefaders CC 20–35 en de panfaders CC 40–55. Koppel ze in FL Studio via “Link to controller”, in Ableton via MIDI Map (⌘M) en in Logic via Learn Assignment (⌘L).</p>
+    <div class="panel-head"><h2>Mixer</h2><span class="hint" style="margin:0">Elk playlist-spoor stuurt naar een insert (FX-knop bij het spoor). Dubbeltik een fader of pan voor de beginstand.</span></div>
+    <div class="mix-strips" id="mix-strips"></div>
+    <div class="mix-fx"><div id="mix-fx-body" class="fx-body"></div></div>
   </div></section>
 
   <section id="view-connect" class="page">
@@ -244,6 +244,7 @@
 <script src="js/app.js"></script>
 <script src="js/sampler.js"></script>
 <script src="js/fx.js"></script>
+<script src="js/mixer.js"></script>
 <script src="js/song.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/editor.js"></script>
