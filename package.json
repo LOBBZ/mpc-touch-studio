@@ -10,18 +10,16 @@
   "scripts": {
     "start": "npx http-server www -p 8080 -c-1",
     "electron": "electron .",
-    "build:win": "electron-builder --win zip portable",
+    "build:win": "electron-builder --win nsis portable zip --x64",
     "build:mac": "electron-builder --mac zip",
     "cap:add-android": "npx cap add android",
     "cap:sync": "npx cap sync android",
     "cap:open": "npx cap open android"
   },
   "devDependencies": {
-    "electron": "^33.0.0",
+    "electron": "^33.2.1",
     "electron-builder": "^25.1.8",
-    "@capacitor/cli": "^6.1.2"
-  },
-  "dependencies": {
+    "@capacitor/cli": "^6.1.2",
     "@capacitor/core": "^6.1.2",
     "@capacitor/android": "^6.1.2"
   },
@@ -34,12 +32,14 @@
     "files": [
       "electron/**",
       "www/**",
-      "package.json"
+      "package.json",
+      "!www/sw.js"
     ],
     "win": {
       "target": [
-        "zip",
-        "portable"
+        "nsis",
+        "portable",
+        "zip"
       ],
       "icon": "www/icons/icon-512.png"
     },
@@ -52,6 +52,18 @@
       "extendInfo": {
         "NSMicrophoneUsageDescription": "MPC Touch Studio gebruikt de microfoon om zang en instrumenten op te nemen op een audiospoor."
       }
+    },
+    "artifactName": "MPC-Touch-Studio-${version}-${arch}.${ext}",
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MPC Touch Studio",
+      "artifactName": "MPC-Touch-Studio-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "MPC-Touch-Studio-Portable-${version}.${ext}"
     }
   }
 }

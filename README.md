@@ -31,19 +31,16 @@ mpc-touch-studio/
 - **iPhone / iPad:** zet de map `www/` op een https-adres, bijvoorbeeld GitHub Pages, Netlify of Cloudflare Pages. Open dat adres in Safari en kies Deel → **Zet op beginscherm**. De app werkt daarna ook offline.
 - Lokaal testen als PWA: `npx http-server www -p 8080`, daarna http://localhost:8080.
 
-## 2. Windows-app (zip + portable .exe)
+## 2. Windows-app
+Download de nieuwste versie: **https://github.com/LOBBZ/mpc-touch-studio/releases/latest**
+- `MPC-Touch-Studio-Setup-x.y.z.exe`: installer, maakt een snelkoppeling op je bureaublad en in het Startmenu.
+- `MPC-Touch-Studio-Portable-x.y.z.exe`: zonder installeren direct starten (bijv. vanaf een USB-stick).
+- `MPC-Touch-Studio-x.y.z-x64.zip`: uitpakken en `MPC Touch Studio.exe` starten.
 
-Vereist: [Node.js LTS](https://nodejs.org).
+Windows SmartScreen kan de eerste keer zeggen "Windows heeft uw pc beschermd" (de app is niet betaald-gesigneerd): klik **Meer info → Toch uitvoeren**.
+MIDI werkt direct in de app (MPC/keyboard via USB; naar FL Studio via loopMIDI). Elke push naar `main` bouwt automatisch een nieuwe Windows-versie (GitHub Actions).
 
-```bash
-npm install
-npm run build:win        # → dist/MPC Touch Studio-1.0.0-win.zip en een portable .exe
-```
-
-Testen zonder te bouwen: `npm run electron`.
-In de desktop-app werkt **Web MIDI direct**: maak met loopMIDI een poort en kies die in het tabblad *DAW / MIDI*. De netwerk-bridge is dan niet nodig.
-
-macOS-app: `npm run build:mac`. De app is niet gesigneerd: open hem de eerste keer met rechtsklik → Open.
+Zelf bouwen: Node.js 20 installeren, dan `npm install` en `npm run build:win` → bestanden in `dist/`.
 
 ## 3. Android-APK
 

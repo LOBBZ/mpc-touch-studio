@@ -1,0 +1,40 @@
+name: Windows-app bouwen
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pakketten installeren
+        run: npm install --no-audit --no-fund
+      - name: Windows-app bouwen (installer, portable, zip)
+        run: npx electron-builder --win nsis portable zip --x64 --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: Bestanden bewaren
+        uses: actions/upload-artifact@v4
+        with:
+          name: MPC-Touch-Studio-Windows
+          path: |
+            dist/*.exe
+            dist/*.zip
+      - name: Release maken
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}-win
+          name: MPC Touch Studio voor Windows (build ${{ github.run_number }})
+          body: |
+            **Installer**: MPC-Touch-Studio-Setup-….exe (installeren, met snelkoppeling op het bureaublad)
+            **Portable**: MPC-Touch-Studio-Portable-….exe (zonder installeren starten)
+            **Zip**: uitpakken en `MPC Touch Studio.exe` starten
+          files: |
+            dist/*.exe
+            dist/*.zip

@@ -6,7 +6,7 @@ const path = require('path');
 function createWindow() {
   const win = new BrowserWindow({
     width: 1360, height: 900, minWidth: 900, minHeight: 600,
-    backgroundColor: '#0b1018', title: 'MPC Touch Studio',
+    backgroundColor: '#1c2226', title: 'MPC Touch Studio',
     icon: path.join(__dirname, '..', 'www', 'icons', 'icon-512.png'),
     autoHideMenuBar: true,
     webPreferences: { contextIsolation: true, sandbox: true, autoplayPolicy: 'no-user-gesture-required' }
