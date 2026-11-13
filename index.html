@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 </head>
-<body>
+<body data-tab="pads">
 <div class="app">
   <header class="top">
     <div class="brand"><div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><strong>MPC Touch Studio</strong><small>Sampler · Beat maker · MIDI voor FL Studio, Ableton & Logic</small></div></div>
@@ -105,7 +105,7 @@
     <div class="panel-head"><h2>Playlist</h2><div class="chipset" id="mode-picks"><button class="chip" data-mode="loop">PAT · patroon</button><button class="chip" data-mode="song">SONG · playlist</button></div></div>
     <div class="song-bar">
       <div class="song-time"><b id="song-pos">0:00.0</b><span class="muted"> / </span><span id="song-len">0:00</span><span class="badge" id="song-barpos">MAAT 1.1</span></div>
-      <div class="btn-row" style="margin:0"><button class="btn small" id="song-home" title="Naar begin">⏮</button><button class="btn small" id="zoom-out" aria-label="Uitzoomen">−</button><button class="btn small" id="zoom-in" aria-label="Inzoomen">+</button><button class="btn small" id="add-drums">+ Drumspoor</button><button class="btn small" id="add-inst">+ Instrumentspoor</button><button class="btn small" id="add-audio">+ Audiospoor 🎤</button></div>
+      <div class="btn-row" style="margin:0"><button class="btn small" id="song-home" title="Naar begin">⏮</button><button class="btn small" id="zoom-out" aria-label="Uitzoomen">−</button><button class="btn small" id="zoom-in" aria-label="Inzoomen">+</button><button class="btn small" id="add-drums">+ Drums<span class="lbl">poor</span></button><button class="btn small" id="add-inst">+ Inst<span class="lbl">rumentspoor</span></button><button class="btn small" id="add-audio">+ 🎤<span class="lbl"> Audiospoor</span></button></div>
     </div>
     <div class="pl-tools">
       <div class="chipset" id="pl-tool">

@@ -310,7 +310,7 @@ function startTransport(){if(playing){pauseTransport();return}const ac=ensureAud
  if(!paused){playCounter=0;if(state.songMode)songRewindForStart()}paused=false;playing=true;skipOnce.clear();gridRef=null;barRef=null;nextTime=ac.currentTime+.06;if(state.songMode)songBegin(nextTime);if(typeof clockStart==='function')clockStart(nextTime,resumed);updateTransport();scheduler();schedulerTimer=setInterval(scheduler,25);keepAwake(true)}
 function pauseTransport(){if(state.songMode)songPause();if(typeof clockStop==='function')clockStop();playing=false;paused=true;clearTimers();updateTransport();midiSend({type:'alloff'});keepAwake(false)}
 function stopTransport(){if(state.songMode)songStop();if(typeof clockStop==='function')clockStop();playing=false;paused=false;playCounter=0;clearTimers();paintStep(-1);updateTransport();midiSend({type:'alloff'});keepAwake(false)}
-function updateTransport(){const p=$('#play');p.textContent=playing?'❚❚ Pauze':(paused?'▶ Verder':'▶ Play');p.classList.toggle('good',playing);p.classList.toggle('primary',!playing);
+function updateTransport(){const p=$('#play');p.innerHTML=playing?'❚❚<span class="lbl"> Pauze</span>':(paused?'▶<span class="lbl"> Verder</span>':'▶<span class="lbl"> Play</span>');p.classList.toggle('good',playing);p.classList.toggle('primary',!playing);
  const r=$('#rec');r.classList.toggle('toggled',recording);r.setAttribute('aria-pressed',recording);
  const m=$('#metro');m.classList.toggle('lit',state.metro);m.setAttribute('aria-pressed',state.metro);
  $('#pattern-indicator').textContent=`PATTERN ${BANKS[state.pattern]} · ${state.stepLength} STEPS`;updateLCD()}
@@ -466,7 +466,7 @@ async function exportWAV(){const OAC=window.OfflineAudioContext||window.webkitOf
  catch(e){console.error(e);toast('WAV-export mislukt: '+(e.message||e))}finally{btn.disabled=false;btn.textContent='↓ Exporteer WAV'}}
 
 /* ---------- Tabs & weergave ---------- */
-function setTab(name){currentTab=name;$$('.tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));$$('.page').forEach(el=>el.classList.toggle('active',el.id==='view-'+name));
+function setTab(name){currentTab=name;document.body.dataset.tab=name;$$('.tab').forEach(el=>el.classList.toggle('active',el.dataset.tab===name));$$('.page').forEach(el=>el.classList.toggle('active',el.id==='view-'+name));
  if(name==='sequence')drawSequencer();if(name==='keys')drawKeyboard();if(name==='mixer')drawMixer();if(name==='pads'){drawPads();setTimeout(()=>{if(typeof renderTrim==='function')renderTrim()},0)}if(name==='song')drawSongUI();
  if(window.matchMedia('(max-width:720px)').matches)window.scrollTo({top:0})}
 function renderAll(){buildBanks();drawPads();updateSelected();drawSequencer();drawMixer();updateTransport();updateVelUI();
