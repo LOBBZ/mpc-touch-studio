@@ -24,17 +24,31 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
+echo   Bezig met installeren, even geduld...
 set "APP="
-for %%D in ("%LOCALAPPDATA%\Programs\mpc-touch-studio" "%LOCALAPPDATA%\Programs\MPC Touch Studio" "%ProgramFiles%\MPC Touch Studio") do (
+set /a N=0
+:wacht
+for %%D in ("%LOCALAPPDATA%\Programs\MPC Touch Studio" "%LOCALAPPDATA%\Programs\mpc-touch-studio" "%ProgramFiles%\MPC Touch Studio") do (
   if exist "%%~D\MPC Touch Studio.exe" set "APP=%%~D\MPC Touch Studio.exe"
 )
-if defined APP (
-  echo   Klaar! MPC Touch Studio wordt gestart.
-  echo   Je vindt de app ook op je bureaublad en in het Startmenu.
-  start "" "%APP%"
-  ping -n 5 127.0.0.1 >nul
-) else (
-  echo   Klaar! Start MPC Touch Studio via het bureaublad of het Startmenu.
-  echo.
-  pause
-)
+if defined APP goto klaar
+set /a N+=1
+if %N% geq 90 goto handmatig
+ping -n 2 127.0.0.1 >nul
+goto wacht
+
+:klaar
+rem nog even wachten tot alle bestanden staan
+ping -n 4 127.0.0.1 >nul
+echo   Klaar! MPC Touch Studio wordt gestart.
+echo   Je vindt de app ook op je bureaublad en in het Startmenu.
+start "" "%APP%"
+ping -n 4 127.0.0.1 >nul
+exit /b 0
+
+:handmatig
+echo   De installatie duurt langer dan verwacht.
+echo   Start MPC Touch Studio straks via het bureaublad of het Startmenu.
+echo.
+pause
+exit /b 0

@@ -52,7 +52,7 @@ jobs:
         run: |
           Expand-Archive (Get-ChildItem dist\MPC-Touch-Studio-Windows-*.zip).FullName -DestinationPath test-install -Force
           cmd /c "test-install\Installeren.bat < nul"
-          $found = @("$env:LOCALAPPDATA\Programs\mpc-touch-studio","$env:LOCALAPPDATA\Programs\MPC Touch Studio") | Where-Object { Test-Path "$_\MPC Touch Studio.exe" }
+          $found = @("$env:LOCALAPPDATA\Programs\MPC Touch Studio","$env:LOCALAPPDATA\Programs\mpc-touch-studio") | Where-Object { Test-Path "$_\MPC Touch Studio.exe" }
           Write-Host "Geinstalleerd in: $found"
           Get-ChildItem "$env:USERPROFILE\Desktop" -Filter *.lnk | ForEach-Object { Write-Host "Snelkoppeling: $($_.Name)" }
           if (-not $found) { Get-ChildItem "$env:LOCALAPPDATA\Programs" | ForEach-Object { Write-Host $_.FullName }; throw "App niet gevonden na installatie" }
