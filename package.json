@@ -1,0 +1,57 @@
+{
+  "name": "mpc-touch-studio",
+  "productName": "MPC Touch Studio",
+  "version": "1.2.0",
+  "description": "Touch sampler, step sequencer en multitrack-recorder met MIDI naar FL Studio, Ableton en Logic.",
+  "main": "electron/main.js",
+  "author": "Ryan",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "npx http-server www -p 8080 -c-1",
+    "electron": "electron .",
+    "build:win": "electron-builder --win zip portable",
+    "build:mac": "electron-builder --mac zip",
+    "cap:add-android": "npx cap add android",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "@capacitor/cli": "^6.1.2"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/android": "^6.1.2"
+  },
+  "build": {
+    "appId": "com.mpctouchstudio.app",
+    "productName": "MPC Touch Studio",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**",
+      "www/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "zip",
+        "portable"
+      ],
+      "icon": "www/icons/icon-512.png"
+    },
+    "mac": {
+      "target": [
+        "zip"
+      ],
+      "icon": "www/icons/icon-1024.png",
+      "category": "public.app-category.music",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "MPC Touch Studio gebruikt de microfoon om zang en instrumenten op te nemen op een audiospoor."
+      }
+    }
+  }
+}

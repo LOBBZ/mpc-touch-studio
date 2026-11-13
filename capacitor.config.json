@@ -1,0 +1,7 @@
+{
+  "appId": "com.mpctouchstudio.app",
+  "appName": "MPC Touch Studio",
+  "webDir": "www",
+  "android": { "allowMixedContent": true },
+  "server": { "androidScheme": "https" }
+}
