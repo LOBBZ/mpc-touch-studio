@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b1018">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MPC Touch">
+<meta name="format-detection" content="telephone=no">
+<title>MPC Touch Studio · Sampler, Sequencer & DAW MIDI</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><strong>MPC Touch Studio</strong><small>Sampler · Beat maker · MIDI voor FL Studio, Ableton & Logic</small></div></div>
+    <div class="status"><i id="led" class="dot"></i><span id="status-label">Standalone · geluid op dit apparaat</span></div>
+  </header>
+
+  <div class="transport" id="transport">
+    <div class="tbar">
+      <div class="tgroup">
+        <button class="btn primary" id="play">▶ Play</button>
+        <button class="btn" id="stop" aria-label="Stop">■<span class="lbl"> Stop</span></button>
+        <button class="btn" id="rec" aria-label="Opnemen">●<span class="lbl"> Rec</span></button>
+        <button class="btn" id="metro" aria-pressed="false" aria-label="Metronoom">♩<span class="lbl"> Klik</span></button>
+        <button class="btn mode-btn" id="mode-btn" aria-label="Wissel tussen patroon-loop en song">LOOP</button>
+      </div>
+      <div class="tgroup">
+        <div class="bpm"><button class="btn icon" id="bpm-down" aria-label="BPM lager">−</button><label class="bpm-box"><input id="bpm" type="number" inputmode="numeric" min="45" max="240" value="100" aria-label="BPM"><span>BPM</span></label><button class="btn icon" id="bpm-up" aria-label="BPM hoger">+</button></div>
+        <button class="btn small" id="tap">Tap</button>
+      </div>
+      <div class="ctrl swing"><label for="swing">Swing</label><input id="swing" type="range" min="50" max="75" step="1" value="50"><output id="swing-val">50%</output></div>
+      <span class="spacer"></span><span class="badge" id="pattern-indicator">PATTERN A · 16 STEPS</span>
+    </div>
+  </div>
+
+  <nav class="tabs" aria-label="Onderdelen">
+    <button class="tab active" data-tab="pads"><i>▦</i><span>Pads</span></button>
+    <button class="tab" data-tab="sequence"><i>▤</i><span>Sequencer</span></button>
+    <button class="tab" data-tab="song"><i>☰</i><span>Song</span></button>
+    <button class="tab" data-tab="keys"><i>♬</i><span>Piano</span></button>
+    <button class="tab" data-tab="mixer"><i>☷</i><span>Mixer</span></button>
+    <button class="tab" data-tab="connect"><i>⇄</i><span>DAW / MIDI</span></button>
+  </nav>
+
+  <section id="view-pads" class="page active">
+    <div class="pads-layout">
+      <div class="panel">
+        <div class="lcd" id="lcd" aria-hidden="true">
+          <div class="lcd-row"><span>Sq:<b id="lcd-seq">01-PAT A</b></span><span class="opt">Bars:<b id="lcd-bars">1</b></span><span>♩=<b id="lcd-bpm">100.0</b></span><span>Swing:<b id="lcd-swing">50</b></span></div>
+          <div class="lcd-row"><span>Now:<b id="lcd-now">001.01.00</b></span><span>Loop:<b>ON</b></span><span id="lcd-state">STOP</span></div>
+          <div class="lcd-row"><span class="nm">Pad:<b id="lcd-pad">A01</b> <b id="lcd-name">Deep Kick</b></span><span>Vel:<b id="lcd-vel">105</b></span></div>
+          <div class="lcd-row lcd-keys"><span>N.RPT:<b id="lcd-nr">OFF</b></span><span>16LV:<b id="lcd-lev">OFF</b></span><span>FULL:<b id="lcd-full">OFF</b></span></div>
+        </div>
+        <div class="mpc-ctrls">
+          <button class="mpc-btn" id="nr-btn" aria-pressed="false"><span class="led"></span>NOTE REPEAT</button>
+          <select id="nr-rate" class="btn small" aria-label="Note Repeat snelheid"><option>1/4</option><option>1/4T</option><option>1/8</option><option>1/8T</option><option selected>1/16</option><option>1/16T</option><option>1/32</option><option>1/32T</option></select>
+          <button class="mpc-btn" id="full-btn" aria-pressed="false"><span class="led"></span>FULL LEVEL</button>
+          <div class="lev"><span>16 LEVELS</span><div class="chipset" id="lev-picks"><button class="chip" data-lev="off">Uit</button><button class="chip" data-lev="vel">Velocity</button><button class="chip" data-lev="tune">Tune</button></div></div>
+        </div>
+        <div class="panel-head"><h2>16 Touch Pads</h2><div class="chipset bank-picks"></div></div>
+        <div id="pad-grid" class="pad-grid"></div>
+        <div class="hint" style="margin-top:10px">Tik om te spelen; meerdere vingers tegelijk werkt. <b>Note Repeat</b>: houd een pad vast voor herhaalde slagen op het tempo. <b>16 Levels</b>: de geselecteerde pad over alle 16 pads, van zacht naar hard of van laag naar hoog. Met ● Rec aan wordt alles op de dichtstbijzijnde stap opgenomen, met velocity en toonhoogte.</div>
+        <div class="kbd-hint desktop-only">Toetsenbord: <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd> · <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd> · <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd><kbd>V</kbd> = pads · <kbd>Spatie</kbd> play/pauze · <kbd>Esc</kbd> stop · <kbd>⇧</kbd>+<kbd>R</kbd> rec · <kbd>⇧</kbd>+<kbd>M</kbd> klik · <kbd>⇧</kbd>+<kbd>N</kbd> note repeat · <kbd>⇧</kbd>+<kbd>F</kbd> full level · <kbd>⇧</kbd>+<kbd>L</kbd> 16 levels · <kbd>⇧</kbd>+<kbd>1</kbd>–<kbd>4</kbd> bank</div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Pad & sampler</h2><span id="selected-badge" class="badge">PAD A01</span></div>
+        <div class="stat"><span>Geselecteerd geluid</span><strong id="sound-type">Kick</strong></div>
+        <div class="field"><label>Aanslag (velocity)</label><div class="chipset" id="vel-picks"><button class="chip" data-vel="fixed">Vast</button><button class="chip" data-vel="pos">Hoogte op pad</button></div><span class="hint" id="vel-hint"></span></div>
+        <div class="field"><label for="pad-name">Naam van de pad</label><input id="pad-name" maxlength="18" type="text" autocomplete="off" autocapitalize="words"></div>
+        <div class="field"><label for="sample-file">Eigen sample op deze pad (WAV / MP3 / M4A / AIFF)</label><input id="sample-file" type="file" accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aif,.aiff,.caf"></div>
+        <div class="btn-row" style="margin-top:0"><label class="btn small good file-btn">📁 Hele kit laden (meerdere bestanden)<input id="kit-files" type="file" multiple accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aif,.aiff,.caf" hidden></label></div>
+        <p class="hint" style="margin:6px 0 0">Kies tot 64 bestanden tegelijk: ze komen op naam gesorteerd op pad 1, 2, 3 … van de actieve bank en lopen door naar de volgende bank. Op de Mac kun je bestanden ook op een pad slepen.</p>
+        <div id="trim-box" class="trim-box" hidden>
+          <div class="trim-head"><b>Trim & fade</b><span class="muted" id="trim-info"></span></div>
+          <canvas id="trim-wave" aria-label="Golfvorm: sleep de gele lijnen voor start en eind"></canvas>
+          <label class="fx-f"><span class="fx-l">Fade-in</span><input type="range" id="trim-fi" min="0" max="300" step="1"><output id="trim-fi-v"></output></label>
+          <label class="fx-f"><span class="fx-l">Fade-out</span><input type="range" id="trim-fo" min="0" max="2000" step="5"><output id="trim-fo-v"></output></label>
+          <div class="btn-row"><button class="btn small" id="trim-auto">✂ Stilte weghalen</button><button class="btn small" id="trim-reset">Reset</button><button class="btn small" id="trim-play">▶ Luister</button></div>
+        </div>
+        <div class="field"><label for="sample-tune">Sample stemming: <output id="tune-val">0 semitonen</output></label><input id="sample-tune" type="range" min="-12" max="12" value="0"></div>
+        <div class="btn-row"><button class="btn small" id="remove-sample">Herstel ingebouwd geluid</button><button class="btn small" id="audition">▶ Voorbeluister</button></div>
+        <div class="callout" style="margin-top:12px">4 banken × 16 pads = 64 pads. Iedere pad kan een eigen sample krijgen; samples blijven bewaard op dit apparaat.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-sequence" class="page"><div class="panel">
+    <div class="panel-head"><h2>Step sequencer</h2><div class="chipset pattern-picks"></div></div>
+    <div class="seq-actions"><div class="chipset bank-picks"></div><select id="step-length" class="btn small" aria-label="Lengte"><option value="16">16 stappen · 1 maat</option><option value="32">32 stappen · 2 maten</option></select><button class="btn small" id="clear-pattern">Wissen</button><button class="btn small" id="random-hats">Hi-hat vullen</button><button class="btn small" id="copy-pattern">Kopieer → volgend patroon</button></div>
+    <div class="step-scroll"><table class="step-grid" id="step-grid" aria-label="Beat sequencer"></table></div>
+    <div class="btn-row"><button class="btn small" id="export-midi">↓ Exporteer MIDI</button><button class="btn small" id="export-wav">↓ Exporteer WAV</button><select class="btn small wav-fmt" aria-label="WAV-formaat"><option value="24-44100">WAV 24-bit · 44,1 kHz</option><option value="24-48000">WAV 24-bit · 48 kHz</option><option value="16-44100">WAV 16-bit · 44,1 kHz</option></select><button class="btn small" id="save-project">↓ Bewaar project</button><label class="btn small" style="display:flex;align-items:center;cursor:pointer">↑ Open project<input id="load-project" type="file" accept=".json,application/json" hidden></label></div>
+    <p class="hint">Tik op stappen om beats te programmeren. Op iPhone/iPad opent export het deelmenu: AirDrop naar je Mac of bewaar in Bestanden. WAV bevat twee herhalingen van het patroon.</p>
+  </div></section>
+
+  <section id="view-song" class="page"><div class="panel">
+    <div class="panel-head"><h2>Song · multitrack</h2><div class="chipset" id="mode-picks"><button class="chip" data-mode="loop">Patroon (loop)</button><button class="chip" data-mode="song">Song (onbeperkt)</button></div></div>
+    <div class="song-bar">
+      <div class="song-time"><b id="song-pos">0:00.0</b><span class="muted"> / </span><span id="song-len">0:00</span><span class="badge" id="song-barpos">MAAT 1.1</span></div>
+      <div class="btn-row" style="margin:0"><button class="btn small" id="song-home" title="Naar begin">⏮</button><button class="btn small" id="zoom-out" aria-label="Uitzoomen">−</button><button class="btn small" id="zoom-in" aria-label="Inzoomen">+</button><button class="btn small" id="add-drums">+ Drumspoor</button><button class="btn small" id="add-inst">+ Instrumentspoor</button><button class="btn small" id="add-audio">+ Audiospoor 🎤</button></div>
+    </div>
+    <div class="tl" id="tl">
+      <div class="tl-heads" id="tl-heads"></div>
+      <div class="tl-scroll" id="tl-scroll"><div class="tl-spacer" id="tl-spacer"></div><canvas id="tl-canvas"></canvas></div>
+    </div>
+    <label class="check"><input type="checkbox" id="song-pattern"> Sequencer-patroon meespelen (wordt mee opgenomen op het drumspoor)</label>
+    <div class="btn-row"><button class="btn small" id="song-undo" disabled>↶ Ongedaan</button><button class="btn small" id="song-redo" disabled>↷ Opnieuw</button><button class="btn small" id="track-clear">Geselecteerd spoor leegmaken</button><button class="btn small" id="song-clear">Song wissen</button><button class="btn small" id="song-midi">↓ Song als MIDI</button><button class="btn small" id="song-wav">↓ Song als WAV</button><select class="btn small wav-fmt" aria-label="WAV-formaat"><option value="24-44100">WAV 24-bit · 44,1 kHz</option><option value="24-48000">WAV 24-bit · 48 kHz</option><option value="16-44100">WAV 16-bit · 44,1 kHz</option></select></div>
+    <details class="panel sub" id="ed-panel" open><summary><b>Editor</b> <span class="muted" id="ed-title">— kies een spoor</span></summary>
+      <div class="ed-tools">
+        <div class="chipset" id="ed-tool"><button class="chip active" data-tool="draw" title="Tik = noot plaatsen / verwijderen">✏️ Teken</button><button class="chip" data-tool="select" title="Tik = selecteren, sleep met muis = kader">⬚ Selecteer</button></div>
+        <select id="ed-grid" class="btn small" aria-label="Raster"><option value="1/4">1/4</option><option value="1/8">1/8</option><option value="1/8T">1/8T</option><option value="1/16">1/16</option><option value="1/16T">1/16T</option><option value="1/32">1/32</option><option value="off">vrij</option></select>
+        <button class="btn small" id="ed-zout" aria-label="Uitzoomen">−</button><button class="btn small" id="ed-zin" aria-label="Inzoomen">+</button>
+        <span class="ed-sep"></span>
+        <button class="btn small" id="ed-all">Alles</button><button class="btn small" id="ed-copy">Kopieer</button><button class="btn small" id="ed-paste" title="Plakken op de startpositie (gele driehoek)">Plak</button><button class="btn small" id="ed-dup">Dupliceer</button><button class="btn small danger" id="ed-del">Verwijder</button>
+        <button class="btn small" id="ed-quant">Quantize</button><button class="btn small" id="ed-down" title="Omlaag (⇧ = octaaf)">▼</button><button class="btn small" id="ed-up" title="Omhoog (⇧ = octaaf)">▲</button>
+        <label class="ed-vel">Vel <input type="range" id="ed-vel" min="1" max="127" value="100"><output id="ed-vel-val">—</output></label>
+      </div>
+      <div class="ed-wrap" id="ed-scroll"><div id="ed-spacer"></div><canvas id="ed-canvas"></canvas></div>
+      <p class="hint" id="ed-hint">Teken: tik op een leeg vak = noot, tik op een noot = weg. Sleep een noot om te verplaatsen, sleep de rechterrand om de lengte te veranderen. Sleep op een lege plek om te scrollen.</p>
+      <div class="ed-audio" id="ed-audio" hidden><label class="fx-f"><span class="fx-l">Opname-latentie</span><input type="range" id="lat" min="-1" max="300" step="1"><output id="lat-val">auto</output></label></div>
+    </details>
+    <details class="panel sub" id="fx-panel"><summary><b>Effecten</b> <span class="muted">— EQ, compressor, reverb, delay</span></summary><div id="fx-body" class="fx-body"></div></details>
+    <p class="hint">Zet de modus op <b>Song</b>, arm een spoor met <b>R</b> en druk op ● Rec en ▶ Play. Er is geen lengtelimiet: neem 7 minuten of langer op. Pads gaan naar het eerste gearmde drumspoor, het klavier (en je MIDI-keyboard) naar het eerste gearmde instrumentspoor. Nogmaals opnemen = overdub. Tik op de liniaal om de startpositie te kiezen.</p>
+  </div></section>
+
+  <section id="view-keys" class="page"><div class="keys-layout"><div class="panel">
+    <div class="panel-head"><h2>Touch pianoklavier</h2><span id="note-readout" class="badge">C4</span></div>
+    <div class="seq-actions"><div class="chipset" id="instrument-picks"><button class="chip active" data-instrument="piano">Piano</button><button class="chip" data-instrument="bass">Bass</button><button class="chip" data-instrument="guitar">Gitaar</button><button class="chip" data-instrument="synth">Synth</button></div><span class="spacer"></span><button class="btn small" id="octave-down">− Oct</button><strong id="octave-label">C3–C5</strong><button class="btn small" id="octave-up">+ Oct</button></div>
+    <div class="key-area" id="key-area"><div id="keyboard" class="keyboard"></div></div>
+    <p class="hint">Glijd met je vinger over de toetsen voor glissando. Noten gaan als MIDI naar je DAW (FL Studio, Ableton, Logic) zodra er een verbinding is; de ingebouwde klanken werken altijd.</p>
+    <div class="kbd-hint desktop-only">Toetsenbord: <kbd>A</kbd><kbd>W</kbd><kbd>S</kbd><kbd>E</kbd><kbd>D</kbd><kbd>F</kbd><kbd>T</kbd><kbd>G</kbd><kbd>Y</kbd><kbd>H</kbd><kbd>U</kbd><kbd>J</kbd><kbd>K</kbd> = C tot C · <kbd>Z</kbd>/<kbd>X</kbd> = octaaf</div>
+    </div><div class="side-col"><div class="panel"><div class="panel-head"><h2>Akkoorden</h2><span class="badge">Soul · Jazz · R&B</span></div><div id="chords" class="chords"></div><p class="hint">Houd ingedrukt om vast te houden. Grondtoon C; gebruik het octaaf voor hoger/lager. In gitaarmodus wordt het akkoord gestrumd.</p></div>
+    <div class="panel ui-panel"><div class="panel-head"><h2>Eigen instrumenten</h2><label class="btn small good file-btn">＋ Nieuw uit samples<input id="ui-new" type="file" multiple accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aif,.aiff,.caf" hidden></label></div>
+      <div id="ui-list"></div>
+      <p class="hint">Neem een of meer noten op van je eigen bas, piano, gitaar of synth. De app speelt ze over het hele klavier. Zet de noot in de bestandsnaam, bijv. <code>Bas_E1.wav</code> of <code>Rhodes C3.wav</code>, of kies hem hieronder. Meer samples (bijv. elke kwint of octaaf) klinken natuurlijker.</p>
+    </div></div>
+  </div></section>
+
+  <section id="view-mixer" class="page"><div class="panel">
+    <div class="panel-head"><h2>Pad mixer</h2><div class="chipset bank-picks"></div></div>
+    <div class="field" style="max-width:360px"><label for="master">Mastervolume · <output id="master-val">85%</output></label><input id="master" type="range" min="0" max="100" value="85"></div>
+    <div id="mix-grid" class="mix-grid"></div><p class="hint">Vol/Pan werkt lokaal. Met MIDI-verbinding sturen de volumefaders CC 20–35 en de panfaders CC 40–55. Koppel ze in FL Studio via “Link to controller”, in Ableton via MIDI Map (⌘M) en in Logic via Learn Assignment (⌘L).</p>
+  </div></section>
+
+  <section id="view-connect" class="page">
+    <div class="panel" style="margin-bottom:12px"><div class="panel-head"><h2>Jouw DAW</h2><div class="chipset" id="daw-picks"><button class="chip" data-daw="fl">FL Studio</button><button class="chip" data-daw="ableton">Ableton Live</button><button class="chip" data-daw="logic">Logic Pro</button></div></div>
+      <div class="stat"><strong>Pads</strong><span>Noot 36–51 (C1–D♯2 in Ableton/Logic) op kanaal 10, bank B–D daarboven. Past direct op Ableton Drum Rack, Logic Drum Machine Designer en FL FPC.</span></div>
+      <div class="stat"><strong>Klavier</strong><span>Kanaal 1, de noot die je speelt</span></div>
+      <div class="stat"><strong>Mixer</strong><span>Volume CC 20–35 · Pan CC 40–55 (kanaal 1)</span></div>
+    </div>
+    <div class="panel" id="sync-panel" style="margin-bottom:12px">
+      <div class="panel-head"><h2>Sync, kanalen & test</h2><div class="midi-leds"><span><i id="led-out" class="mled"></i>OUT</span><span><i id="led-in" class="mled"></i>IN</span><button class="btn small" id="midi-test">♪ Testnoot</button></div></div>
+      <div class="sync-grid">
+        <div>
+          <label class="check"><input type="checkbox" id="clock-out"> <span><b>DAW volgt app</b> — MIDI Clock + start/stop/positie versturen</span></label>
+          <label class="check"><input type="checkbox" id="clock-follow"> <span><b>App volgt DAW</b> — tempo en start/stop van je DAW overnemen</span></label>
+          <div class="field"><label for="sync-in">Sync-ingang (clock van je DAW, bijv. IAC Bus 2)</label><select id="sync-in"><option value="">Schakel eerst Web MIDI in</option></select></div>
+          <div id="sync-hint"></div>
+        </div>
+        <div>
+          <div class="field"><label for="pad-ch">Pads-kanaal</label><select id="pad-ch"></select></div>
+          <div class="field"><label for="key-ch">Klavier-kanaal (instrumentsporen volgen op de kanalen erna)</label><select id="key-ch"></select></div>
+          <div class="field"><label for="pad-base">Startnoot pad A01</label><select id="pad-base"></select></div>
+          <p class="hint" id="pad-range"></p>
+          <p class="hint">Tip: stel de startnoot in op wat je drum-plugin verwacht. De meeste (Drum Rack, Drum Machine Designer, FPC) beginnen op 36.</p>
+        </div>
+      </div>
+    </div>
+    <div class="connection">
+    <div class="panel" id="card-mac">
+      <div class="panel-head"><h2>MacBook → <span class="daw-name">DAW</span></h2><span class="badge">Web MIDI · Chrome / Edge</span></div>
+      <div id="webmidi-status" class="connstatus">Web MIDI staat uit</div>
+      <div class="btn-row" style="margin-top:4px"><button id="webmidi-btn" class="btn good">⇄ Web MIDI inschakelen</button><button class="btn small danger panic">Alle noten uit</button></div>
+      <div class="field"><label for="wm-out">MIDI-uitgang (naar je DAW)</label><select id="wm-out"><option value="">Nog niet ingeschakeld</option></select></div>
+      <div class="field"><label for="wm-in">MIDI-ingang (USB-keyboard of padcontroller)</label><select id="wm-in"><option value="">Geen</option></select></div>
+      <div class="field"><label for="wm-route">Ingang speelt</label><select id="wm-route"><option value="auto">Automatisch: kanaal 10 = pads, rest = klavier</option><option value="pads">Altijd de pads (ook 16 Levels & Note Repeat)</option><option value="keys">Altijd het klavier</option></select></div>
+      <div class="stat"><strong>1. Mac</strong><span>Audio-MIDI-configuratie → Venster → Toon MIDI-studio → dubbelklik IAC-driver → vink “Apparaat is online” aan</span></div>
+      <div class="stat"><strong>2. Browser</strong><span>Open deze app in Chrome of Edge → Web MIDI inschakelen → kies “IAC-driver Bus 1” als uitgang</span></div>
+      <div id="daw-steps"></div>
+      <p class="hint">Werkt alleen met het HTML-bestand in Chrome of Edge, niet in Safari of in de online claude.ai-versie. Kies voor in- en uitgang niet dezelfde poort.</p>
+    </div>
+    <div class="panel" id="card-bridge">
+      <div class="panel-head"><h2>iPhone / iPad → Mac of Windows</h2><span class="badge">Wifi-bridge v2</span></div>
+      <div id="connection-status" class="connstatus">Niet gekoppeld — standalone werkt al</div>
+      <div class="field"><label for="server-url">Adres van je computer (staat in het bridge-venster)</label><input id="server-url" placeholder="Bijv. ws://192.168.1.10:8765/ws" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      <div class="field"><label for="pin">Koppelcode (PIN) uit het bridge-venster</label><input id="pin" type="text" inputmode="numeric" maxlength="6" placeholder="6 cijfers" autocomplete="one-time-code"></div>
+      <div class="btn-row"><button id="connect-btn" class="btn good">⇄ Verbinden</button><button id="disconnect-btn" class="btn">Verbreken</button></div>
+      <div class="field"><label for="midi-output">MIDI-uitgang op de computer</label><select id="midi-output"><option value="">Nog niet gekoppeld</option></select></div>
+      <div class="btn-row"><button class="btn small" id="refresh-ports">↻ Vernieuw MIDI-poorten</button><button class="btn small danger panic">Alle noten uit</button></div>
+      <div class="stat"><strong>1. Computer</strong><span>Map <code>bridge</code> uit de zip: dubbelklik <code>start_mac.command</code> (Mac), <code>start_windows.bat</code> (Windows) of <code>start_linux.sh</code>. De eerste keer is Python 3 nodig.</span></div>
+      <div class="stat"><strong>2. MIDI-poort</strong><span>Mac/Linux: kies “MPC Touch Studio (virtuele poort)”, dan is er geen IAC nodig. Windows: maak met <a href="https://www.tobias-erichsen.de/software/loopmidi.html" target="_blank" rel="noopener">loopMIDI</a> een poort “MPC Touch Studio”.</span></div>
+      <div class="stat"><strong>3. <span class="daw-name">DAW</span></strong><span id="bridge-daw-step"></span></div>
+      <div class="stat"><strong>4. iPhone/iPad</strong><span>Zelfde wifi → open in Safari het adres uit het venster → vul adres en PIN in. Ook MIDI Clock gaat via de bridge.</span></div>
+      <p class="hint">Open de app via het http-adres van de bridge: op een https-pagina blokkeert Safari een ws://-verbinding. Gebruik alleen je eigen vertrouwde netwerk.</p>
+    </div>
+    <div class="panel" id="card-more">
+      <div class="panel-head"><h2>Meer verbindingen</h2><span class="badge">USB · Bluetooth · netwerk</span></div>
+      <div class="stat"><strong>USB-controller</strong><span>Mac/Windows (Chrome, Edge of de desktop-app): sluit aan → Web MIDI → kies hem bij MIDI-ingang.</span></div>
+      <div class="stat"><strong>Bluetooth-MIDI</strong><span>Mac: Audio-MIDI-configuratie → MIDI-studio → Bluetooth-icoon → koppel. Daarna staat hij in de lijst met in- en uitgangen.</span></div>
+      <div class="stat"><strong>Mac ↔ Mac</strong><span>Audio-MIDI-configuratie → MIDI-studio → Netwerk: maak een sessie, verbind beide Macs en kies “Netwerksessie” als uitgang.</span></div>
+      <div class="stat"><strong>Android</strong><span>Open de app in Chrome (niet in de APK): Web MIDI werkt daar met USB-MIDI-controllers via een OTG-kabel. Naar de computer: gebruik de wifi-bridge.</span></div>
+      <div class="stat"><strong>Windows-app</strong><span>De desktop-app uit de zip heeft Web MIDI ingebouwd: kies je loopMIDI-poort. De bridge is dan niet nodig.</span></div>
+      <div class="stat"><strong>Export</strong><span>Werkt overal: Song als MIDI (alle sporen) of WAV, via AirDrop of USB naar je DAW.</span></div>
+    </div>
+    <div class="panel" id="card-ios">
+      <div class="panel-head"><h2>iPhone & iPad tips</h2><span class="badge">Safari</span></div>
+      <div class="stat"><strong>Als app</strong><span>Deel-knop → “Zet op beginscherm” voor schermvullend gebruik</span></div>
+      <div class="stat"><strong>Geen geluid?</strong><span>Tik eenmaal op een pad. Op iOS 16 of ouder: zet de stil-schakelaar uit</span></div>
+      <div class="stat"><strong>Naar je Mac</strong><span>Exporteer MIDI of WAV → AirDrop → sleep in FL Studio, Ableton of Logic</span></div>
+      <div class="stat"><strong>Apple Pencil</strong><span>Druk bepaalt de velocity op de pads</span></div>
+      <div class="callout" style="margin-top:12px"><b>Wat werkt:</b> pads, piano, bas, gitaar en mixer als MIDI-controller voor de instrumenten in je DAW. MIDI is géén audio-overdracht en bestuurt niet elk menu of elke pluginfunctie.</div>
+    </div>
+  </div></section>
+  <div class="foot">MPC Touch Studio · eigen standalone muzieksoftware · geen product van Akai, Image-Line, Ableton of Apple</div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="js/app.js"></script>
+<script src="js/sampler.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/song.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/connect.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
