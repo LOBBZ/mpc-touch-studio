@@ -67,35 +67,59 @@ Zonder Android Studio-scherm: `cd android && ./gradlew assembleDebug`. De APK st
 
 Let op: de Android-WebView heeft **geen Web MIDI**. Pads, sequencer, Song-modus en export werken wel. MIDI naar je DAW gaat op Android via de MIDI/WAV-export.
 
-## Song-modus (multitrack, onbeperkte lengte)
+## Playlist (zoals in FL Studio)
 
-1. Klik in de transportbalk op **LOOP** zodat er **SONG** staat (of tabblad *Song* → *Song (onbeperkt)*; sneltoets ⇧S).
-2. Arm een spoor met **R**. Pads gaan naar het eerste gearmde drumspoor; het klavier en je MIDI-keyboard naar het eerste gearmde instrumentspoor.
-3. Druk op **● Rec** en **▶ Play**. Er is geen lengtelimiet: neem 7 minuten of langer op.
-4. Nogmaals opnemen is een **overdub**. *↶ Laatste take ongedaan* draait de laatste opname terug.
-5. *Sequencer-patroon meespelen* neemt je beat op het drumspoor op. Na de eerste take gaat dit vinkje automatisch uit.
-6. Exporteren: **Song als MIDI** (type 1, één MIDI-spoor per drum-/instrumentspoor) of **Song als WAV** (stereo mixdown met audio en effecten, 44,1 kHz).
+Tabblad **Playlist**. Zet de transportknop op **SONG** (PAT = alleen het patroon loopen, net als in FL).
 
-Per spoor: naam, instrument, opname-arm (R), mute (M), solo (S), volume en **FX**. Tik op de liniaal om de startpositie te kiezen. Zoom met − en +.
+**Clips op sporen**
+- **Patternclip:** je sequencer-patroon A–D. Pas je het patroon aan, dan veranderen alle clips van dat patroon mee.
+- **Notenclip:** opgenomen of getekende noten (pads of klavier).
+- **Audioclip:** zang of instrument met golfvorm.
 
-### Sporen
-- **Drumspoor**: pads, Note Repeat, 16 Levels en het sequencer-patroon.
-- **Instrumentspoor**: klavier, akkoorden en MIDI-keyboard; kies piano, bas, gitaar of synth.
-- **Audiospoor 🎤**: zang of instrument via microfoon/audio-interface. Arm met R (de browser vraagt om toegang), daarna ● Rec + ▶ Play. Gebruik een koptelefoon. *Opname-latentie* staat op auto; schuif hem bij als je opname te laat of te vroeg valt.
-  Werkt in Chrome/Edge (ook via `file://`), Safari op iPhone/iPad via https, en in de Windows-, Mac- en Android-app. Niet in de online claude.ai-weergave.
+**Gereedschap**
+- ⬚ **Selecteer:** tik = selecteren, sleep = verplaatsen (ook naar een ander spoor), sleep de rand = langer of korter. Patronen en notenclips loopen door als je ze langer maakt. **Dubbeltik** opent de clip: noten in de piano roll, een pattern in de sequencer.
+- ✏️ **Teken:** tik op een lege plek om de gekozen bron te plaatsen (Pattern A–D of een lege notenclip).
+- ✂️ **Knip:** tik op een clip om hem te splitsen.
+- 🧽 **Wis:** tik of **veeg met je vinger** over clips om ze uit te vegen. Rechtsklik werkt ook.
+- 🔇 **Demp:** clip aan of uit.
+- **Snap** (maat/tel/1/16/uit), **Dupliceer** (Ctrl/⌘+B), **Verwijder** (Delete), **Ongedaan/Opnieuw** (60 stappen).
 
-### Editor (onder de tijdlijn)
-Tik op een spoor om het te bewerken: piano roll voor instrumenten, drumgrid voor drums (16 pads van de actieve bank) en clips voor audio.
-- ✏️ **Teken**: tik op een leeg vak voor een noot, tik op een noot om hem te verwijderen. Sleep een noot om hem te verplaatsen, of sleep de rechterrand voor de lengte.
-- ⬚ **Selecteer**: tik om te selecteren (⇧ voegt toe). Met de muis sleep je een kader.
-- Raster 1/4 tot 1/32, triolen of vrij. Bewerken: **Alles**, **Kopieer**, **Plak** (op de gele startpositie), **Dupliceer**, **Verwijder**, **Quantize**, ▲▼ transponeren (⇧ = octaaf) en **Vel** (velocity, of volume bij audioclips).
-- **Ongedaan/Opnieuw**: tot 60 stappen.
-- Sneltoetsen: ⌘/Ctrl + Z, ⇧⌘Z / Ctrl+Y, ⌘C, ⌘V, ⌘D, ⌘A, Delete, ↑/↓.
+**Opnemen:** arm een spoor met **R**, druk op ● Rec en ▶ Play. Elke opname wordt een nieuwe clip; een tweede opname is een overdub. Er is geen lengtelimiet.
+- Met *Patroon meespelen* komt het meespelende patroon als patternclip in de playlist.
 
-### Effecten
-- **Per spoor:** pan, 3-bands EQ (laag 180 Hz, mid met instelbare frequentie, hoog 6 kHz), compressor (drempel en ratio), reverb-send en delay-send.
-- **Master:** reverb-lengte en -niveau, delay-tijd (gesynchroniseerd op de BPM), feedback en niveau. Daarna volgt een limiter.
-- De effecten zitten ook in de WAV-export.
+**Sporen:** drums (pads), instrument (piano, bas, gitaar, synth of je eigen ★-instrument) en audio (microfoon). Per spoor heb je R, M, S, volume en FX.
+
+**Exporteren:** *Song als MIDI* (één MIDI-spoor per spoor) of *Song als WAV* (mixdown met audio en effecten).
+
+### Piano roll / drumgrid (onder de playlist)
+Dubbeltik een notenclip om hem te openen.
+- ✏️ Tik om een noot te plaatsen of te verwijderen. Sleep om te verplaatsen; sleep de rechterrand om de lengte te veranderen.
+- Je hebt hier ook kopiëren/plakken, dupliceren, quantize, transponeren (▲▼) en velocity.
+
+### Effecten per spoor
+- **Per spoor:** EQ (laag/mid/hoog), compressor, reverb- en delay-send en pan.
+- **Master:** reverb en een delay die meeloopt met de BPM.
+
+## Touch FX (effecten met je vinger)
+
+Druk op **XY** in de transportbalk (of ⇧X). Sleep met je vinger of muis over het vlak: zolang je het aanraakt staat het effect aan. **HOLD** laat het effect aan na loslaten.
+
+| Effect | X (links → rechts) | Y (onder → boven) |
+|---|---|---|
+| Filter | low-pass ◂ · ▸ high-pass | resonantie |
+| Stutter | herhaal 1/4 → 1/64 | hoe lang het doorklinkt |
+| Delay | tijd (1/16 … 1/4.) | feedback |
+| Space | hoeveelheid reverb | helderheid |
+| Gate | snelheid | diepte |
+| Lo-Fi | toon | bits (minder = ruwer) |
+| Flanger | snelheid | diepte |
+
+Het werkt met touch (telefoon, tablet, touch-laptop), met muis/trackpad en met een **MPC of andere controller**:
+1. Zet de MPC in controller-modus en sluit hem via USB aan.
+2. Kies hem bij *DAW / MIDI → MIDI-ingang*.
+3. Tik in Touch FX op **X leren** en draai aan een Q-Link-knop. Doe hetzelfde voor **Y leren**.
+
+De MPC zelf kan de app niet draaien.
 
 ## Eigen geluiden
 

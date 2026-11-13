@@ -15,7 +15,7 @@ const recAudioTrack=()=>song.tracks.find(t=>t.arm&&t.type==='audio')||null;
 
 async function loadClipRecord(key,item){try{const ac=ensureAudio();if(!ac||!item||!item.pcm)return;const pcm=item.pcm instanceof Float32Array?item.pcm:new Float32Array(item.pcm);
  const buf=ac.createBuffer(1,pcm.length,item.sr||ac.sampleRate);buf.copyToChannel?buf.copyToChannel(pcm,0):buf.getChannelData(0).set(pcm);addClip(String(key).slice(5),buf)}catch(e){console.warn('Clip niet geladen',key,e)}}
-async function gcClips(){try{if(!db)return;const used=new Set();for(const t of song.tracks)if(t.type==='audio')for(const e of t.events)used.add(e[2]);
+async function gcClips(){try{if(!db)return;const used=new Set();for(const t of song.tracks)for(const c of t.clips||[])if(c.kind==='audio')used.add(c.clipId);
  for(const id of [...clips.keys()])if(!used.has(id)){clips.delete(id);await dbDelete('clip:'+id)}}catch(e){}}
 
 /* ---------- Opnemen ---------- */
@@ -47,21 +47,23 @@ function recClipTicks(){return rec.active?secToTicks(rec.len/(ctx?ctx.sampleRate
 
 /* ---------- Afspelen ---------- */
 let songSources=[];
-function playClip(dest,e,t,offset=0){const c=clips.get(e[2]);if(!c||!ctx)return;if(offset>=c.dur)return;
+/* e = [tick, 2, clipId, gain, offsetTicks, lengteTicks] */
+function playClip(dest,e,t,offset=0){const c=clips.get(e[2]);if(!c||!ctx)return;const o=ticksToSec(e[4]||0)+offset,l=(e[5]!=null?ticksToSec(e[5]):c.dur-(o-offset))-offset;if(o>=c.dur||l<=0.005)return;
  const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=c.buf;g.gain.value=e[3]??1;s.connect(g);g.connect(dest);s.onended=()=>{s.disconnect();g.disconnect()};
- s.start(Math.max(t,ctx.currentTime),offset);if(songSources.length>48)songSources=songSources.filter(x=>x.end>ctx.currentTime);songSources.push({s,end:t+c.dur-offset})}
+ const at=Math.max(t,ctx.currentTime);s.start(at,o,Math.min(l,c.dur-o));if(songSources.length>48)songSources=songSources.filter(x=>x.end>ctx.currentTime);songSources.push({s,end:at+l})}
 function stopClipSources(){const now=ctx?ctx.currentTime:0;for(const x of songSources)if(x.end>now)try{x.s.stop()}catch(e){}songSources=[]}
 /* Bij starten midden in een clip: speel vanaf de juiste plek */
 function startOverlappingClips(t){for(const tr of song.tracks){if(tr.type!=='audio'||!trackAudible(tr))continue;const dest=liveTrackOut(tr);
- for(const e of tr.events){if(e[0]>=songPos)break;const end=e[0]+clipTicks(e[2]);if(end>songPos)playClip(dest,e,t,ticksToSec(songPos-e[0]))}}}
+ for(const e of tr.events){if(e[0]>=songPos)break;const end=e[0]+(e[5]!=null?e[5]:clipTicks(e[2]));if(end>songPos)playClip(dest,e,t,ticksToSec(songPos-e[0]))}}}
 
 /* Clips tekenen (tijdlijn en editor). X: tick → x-positie */
-function drawClips(g,ev,y,h,X,t0,t1,color,alpha,selSet){g.globalAlpha=alpha;
- for(const e of ev){const c=clips.get(e[2]),len=c?secToTicks(c.dur):PPQ;if(e[0]>t1||e[0]+len<t0)continue;
-  const x=X(e[0]),w=Math.max(2,X(e[0]+len)-x),top=y+3,hh=h-6;g.fillStyle=color+'30';g.fillRect(x,top,w,hh);g.fillStyle=color;g.fillRect(x,top,w,2);
-  if(c){const n=c.peaks.length,mid=top+hh/2,amp=(hh-6)/2*Math.min(2,e[3]??1),W=g.canvas.width/(window.devicePixelRatio||1);
+function drawClips(g,ev,y,h,X,t0,t1,color,alpha,selSet,waveOnly){g.globalAlpha=alpha;const W=g.canvas.width/(window.devicePixelRatio||1);
+ for(const e of ev){const c=clips.get(e[2]),full=c?secToTicks(c.dur):PPQ,offT=e[4]||0,len=e[5]!=null?e[5]:full-offT;if(e[0]>t1||e[0]+len<t0)continue;
+  const x=X(e[0]),w=Math.max(2,X(e[0]+len)-x),top=y+3,hh=h-6;g.fillStyle=color;
+  if(!waveOnly){g.fillStyle=color+'30';g.fillRect(x,top,w,hh);g.fillStyle=color;g.fillRect(x,top,w,2)}
+  if(c){const n=c.peaks.length,mid=top+hh/2,amp=(hh-6)/2*Math.min(2,e[3]??1),f0=offT/full,f1=(offT+len)/full;
    const a=Math.max(0,Math.floor(-x)),b=Math.min(Math.ceil(w),Math.ceil(W-x));
-   for(let i=a;i<b;i++){const p0=Math.floor(i/w*n),p1=Math.max(p0+1,Math.floor((i+1)/w*n));let m=0;for(let j=p0;j<p1&&j<n;j++)if(c.peaks[j]>m)m=c.peaks[j];const hgt=Math.max(1,m*amp);g.fillRect(x+i,mid-hgt,1,hgt*2)}}
+   for(let i=a;i<b;i++){const p0=Math.floor((f0+(f1-f0)*i/w)*n),p1=Math.max(p0+1,Math.floor((f0+(f1-f0)*(i+1)/w)*n));let m=0;for(let j=p0;j<p1&&j<n;j++)if(c.peaks[j]>m)m=c.peaks[j];const hgt=Math.max(1,m*amp);g.fillRect(x+i,mid-hgt,1,hgt*2)}}
   else{g.fillStyle='#ff6577';g.font='10px system-ui';g.fillText('clip ontbreekt',x+4,top+12)}
   if(selSet&&selSet.has(e)){g.strokeStyle='#fff';g.lineWidth=1.5;g.strokeRect(x+.75,top+.75,w-1.5,hh-1.5)}}
  g.globalAlpha=1}
