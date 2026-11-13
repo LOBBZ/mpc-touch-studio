@@ -22,7 +22,9 @@ function startBridge(pin) {
   const exe = path.join(process.resourcesPath || '', 'bridge', process.platform === 'win32' ? 'MPC-Touch-Bridge.exe' : 'MPC-Touch-Bridge');
   if (!fs.existsSync(exe)) return false;
   try {
-    bridge = spawn(exe, ['--port', String(BRIDGE_PORT), '--pin', pin], { windowsHide: true, stdio: 'ignore' });
+    let out = 'ignore';
+    try { out = fs.openSync(path.join(app.getPath('userData'), 'bridge.log'), 'w'); } catch (e) {}
+    bridge = spawn(exe, ['--port', String(BRIDGE_PORT), '--pin', pin], { windowsHide: true, stdio: ['ignore', out, out] });
     bridge.on('error', () => { bridge = null; });
     bridge.on('exit', () => { bridge = null; });
     return true;

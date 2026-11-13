@@ -15,6 +15,16 @@ VST3 (Windows/Mac): pip install pedalboard numpy  -> je eigen plugins laden, bed
 import argparse, asyncio, base64, hashlib, json, mimetypes, os, platform, random, socket, struct, sys, threading, time, urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Zonder consolevenster (meegestart door de Windows-app) mag printen nooit crashen
+for _n in ("stdout", "stderr"):
+    _s = getattr(sys, _n, None)
+    if _s is None:
+        setattr(sys, _n, open(os.devnull, "w", encoding="utf-8"))
+    else:
+        try:
+            _s.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
+        except Exception:
+            pass
 try:
     import vst_host
 except Exception as _e:  # bridge werkt ook zonder VST3
