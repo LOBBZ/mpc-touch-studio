@@ -47,15 +47,23 @@ jobs:
           Copy-Item windows-installer\Installeren.bat pkg\
           Copy-Item "windows-installer\LEES MIJ.txt" pkg\
           Compress-Archive -Path pkg\* -DestinationPath "dist\MPC-Touch-Studio-Windows-$v.zip" -Force
-      - name: Installeren.bat testen
+      - name: Installatie testen (zoals een gebruiker)
         shell: pwsh
         run: |
           Expand-Archive (Get-ChildItem dist\MPC-Touch-Studio-Windows-*.zip).FullName -DestinationPath test-install -Force
+          $t0 = Get-Date
           cmd /c "test-install\Installeren.bat < nul"
-          $found = @("$env:LOCALAPPDATA\Programs\MPC Touch Studio","$env:LOCALAPPDATA\Programs\mpc-touch-studio") | Where-Object { Test-Path "$_\MPC Touch Studio.exe" }
+          Write-Host "Installeren.bat duurde $([int]((Get-Date)-$t0).TotalSeconds) s"
+          $found = @("$env:LOCALAPPDATA\Programs\MPC Touch Studio","$env:LOCALAPPDATA\Programs\mpc-touch-studio","$env:ProgramFiles\MPC Touch Studio") | Where-Object { Test-Path "$_\MPC Touch Studio.exe" }
           Write-Host "Geinstalleerd in: $found"
-          Get-ChildItem "$env:USERPROFILE\Desktop" -Filter *.lnk | ForEach-Object { Write-Host "Snelkoppeling: $($_.Name)" }
-          if (-not $found) { Get-ChildItem "$env:LOCALAPPDATA\Programs" | ForEach-Object { Write-Host $_.FullName }; throw "App niet gevonden na installatie" }
+          Get-ChildItem "$env:USERPROFILE\Desktop","$env:PUBLIC\Desktop" -Filter *.lnk -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Snelkoppeling: $($_.FullName)" }
+          if (-not $found) {
+            Write-Host "--- diagnose ---"
+            Get-ChildItem "$env:LOCALAPPDATA\Programs" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Programs: $($_.FullName)" }
+            Get-ChildItem "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall","HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall" -ErrorAction SilentlyContinue | ForEach-Object { $d=(Get-ItemProperty $_.PSPath).DisplayName; if ($d -like "*MPC*") { Write-Host "Uninstall-sleutel: $d -> $((Get-ItemProperty $_.PSPath).InstallLocation)" } }
+            Get-Process | Where-Object { $_.Name -like "*MPC*" -or $_.Name -like "*Setup*" } | ForEach-Object { Write-Host "Proces: $($_.Name)" }
+            throw "App niet gevonden na installatie"
+          }
           $p = Get-Process -Name "MPC Touch Studio" -ErrorAction SilentlyContinue
           Write-Host "App draait: $([bool]$p)"
           $r = $null
@@ -77,7 +85,8 @@ jobs:
           name: MPC Touch Studio voor Windows (build ${{ github.run_number }})
           make_latest: true
           body: |
-            **Installer**: MPC-Touch-Studio-Setup-….exe (installeren, met snelkoppeling op het bureaublad)
+            **Installatie-zip**: MPC-Touch-Studio-Windows-….zip → uitpakken → Installeren.bat (installeert direct en start de app)
+            **Installer**: MPC-Touch-Studio-Setup-….exe (dubbelklik: installeert direct, snelkoppeling op het bureaublad)
             **Portable**: MPC-Touch-Studio-Portable-….exe (zonder installeren starten)
             **Zip**: uitpakken en `MPC Touch Studio.exe` starten
             **MPC-Touch-Bridge.exe**: alleen nodig als je de app op je telefoon/tablet of in de browser gebruikt en je VST3-plugins op deze pc wilt laden (de Windows-app start de bridge zelf).

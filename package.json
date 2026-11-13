@@ -1,7 +1,7 @@
 {
   "name": "mpc-touch-studio",
   "productName": "MPC Touch Studio",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Touch sampler, step sequencer en multitrack-recorder met MIDI naar FL Studio, Ableton en Logic.",
   "main": "electron/main.js",
   "author": "Ryan",
@@ -57,11 +57,13 @@
     },
     "artifactName": "MPC-Touch-Studio-${version}-${arch}.${ext}",
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "MPC Touch Studio",
+      "deleteAppDataOnUninstall": false,
       "artifactName": "MPC-Touch-Studio-Setup-${version}.${ext}"
     },
     "portable": {
