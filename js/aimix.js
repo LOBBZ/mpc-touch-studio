@@ -111,7 +111,7 @@ async function aiMix(){if(AI.busy)return;const tr=song.tracks.filter(t=>t.events
  catch(e){console.error(e);aiStatus('');toast('AI Mix mislukt: '+(e.message||e))}finally{AI.busy=false;renderInsertFx()}}
 
 /* ---------- AI Master ---------- */
-const MASTER_TARGETS={stream:['Streaming (Spotify/YouTube) −14 LUFS',-14,-1],apple:['Apple Music −16 LUFS',-16,-1],pop:['Pop/R&B −10 LUFS',-10,-1],hiphop:['Hip-hop/trap −9 LUFS',-9,-1],club:['Club/EDM −8 LUFS',-8,-.8],dyn:['Dynamisch (jazz/akoestisch) −16 LUFS',-16,-1.5]};
+const MASTER_TARGETS={ref:['Zoals de referentietrack',-14,-1],stream:['Streaming (Spotify/YouTube) −14 LUFS',-14,-1],apple:['Apple Music −16 LUFS',-16,-1],pop:['Pop/R&B −10 LUFS',-10,-1],hiphop:['Hip-hop/trap −9 LUFS',-9,-1],club:['Club/EDM −8 LUFS',-8,-.8],dyn:['Dynamisch (jazz/akoestisch) −16 LUFS',-16,-1.5]};
 const GENRE_CURVES={/* dB t.o.v. −4,5 dB/oct, op 20 Hz…16 kHz terts-banden (geïnterpoleerd) */
  balanced:[[30,1],[60,1.5],[120,.5],[300,0],[1000,0],[3000,0],[8000,-.5],[14000,-1.5]],
  hiphop:[[30,3],[60,4],[120,2],[300,-.5],[1000,0],[3000,.5],[8000,0],[14000,-1]],
@@ -120,10 +120,11 @@ const GENRE_CURVES={/* dB t.o.v. −4,5 dB/oct, op 20 Hz…16 kHz terts-banden (
  rnb:[[30,2],[60,3],[120,1.5],[300,0],[1000,0],[3000,0],[8000,-.5],[14000,-1.5]],
  rock:[[30,0],[60,1],[120,1],[300,.5],[1000,.5],[3000,1],[8000,0],[14000,-1]],
  jazz:[[30,-1],[60,0],[120,.5],[300,.5],[1000,0],[3000,-.5],[8000,-1],[14000,-2]]};
-const GENRE_NAMES={balanced:'Neutraal',hiphop:'Hip-hop / trap',edm:'EDM / dance',pop:'Pop',rnb:'R&B / soul',rock:'Rock',jazz:'Jazz / akoestisch'};
+const GENRE_NAMES={reference:'📎 Referentietrack',balanced:'Neutraal',hiphop:'Hip-hop / trap',edm:'EDM / dance',pop:'Pop',rnb:'R&B / soul',rock:'Rock',jazz:'Jazz / akoestisch'};
 function curveAt(c,f){if(f<=c[0][0])return c[0][1];for(let i=1;i<c.length;i++)if(f<=c[i][0]){const [f0,v0]=c[i-1],[f1,v1]=c[i],t=Math.log(f/f0)/Math.log(f1/f0);return v0+(v1-v0)*t}return c[c.length-1][1]}
 async function aiMaster(){if(AI.busy)return;if(!song.tracks.some(t=>t.events.length)){toast('Er staat nog niets in de playlist');return}
- AI.busy=true;ensureAudio();pushHistory();const tg=MASTER_TARGETS[state.aiTarget]||MASTER_TARGETS.stream,curve=GENRE_CURVES[state.aiGenre]||GENRE_CURVES.balanced;
+ const R=typeof AIC!=='undefined'&&AIC.ref;if((state.aiTarget==='ref'||state.aiGenre==='reference')&&!R){toast('Laad eerst een referentietrack (💬 assistent → 📎)');return}
+ AI.busy=true;ensureAudio();pushHistory();const tg=state.aiTarget==='ref'?[`Zoals ${R.name}`,clamp(+R.lufs.toFixed(1),-18,-6),-1]:MASTER_TARGETS[state.aiTarget]||MASTER_TARGETS.stream,curve=state.aiGenre==='reference'?refCurve(R):GENRE_CURVES[state.aiGenre]||GENRE_CURVES.balanced;
  try{const ms=slotsOf('master');for(let i=ms.length-1;i>=0;i--)if(ms[i].ai)ms.splice(i,1);fxStructureChanged('master');
   aiStatus('Mix renderen…');const mix=await renderMix({limiter:false,progress:p=>aiStatus(`Mix renderen… ${p}%`)});aiStatus('Mix meten…');await idle();
   const A=analyze(mix);if(A.lufs<-60)throw new Error('de mix is stil');
@@ -145,7 +146,7 @@ async function aiMaster(){if(AI.busy)return;if(!song.tracks.some(t=>t.events.len
   if(Math.abs(F.lufs-tg[1])>.6){lim.p.gain=+clamp(lim.p.gain+(tg[1]-F.lufs),-12,30).toFixed(2);const f2=await processThrough(mix,chain);Object.assign(F,{lufs:measureLUFS(f2),...measurePeaks(f2)})}
   ms.push(...chain.slice(0,MAX_SLOTS-ms.length));fxStructureChanged('master');syncLegacyLimiter();saveSong();
   AI.last={before:A.lufs,after:F.lufs};AI.ab=null;
-  AI.report=`<h4>🎛️ AI Master klaar — ${tg[0]}, ${GENRE_NAMES[state.aiGenre]||'Neutraal'}</h4>
+  AI.report=`<h4>🎛️ AI Master klaar — ${tg[0]}, ${state.aiGenre==='reference'?'klank zoals '+esc(R.name):GENRE_NAMES[state.aiGenre]||'Neutraal'}</h4>
    <div class="ai-meters"><div><b>${A.lufs.toFixed(1)}</b><span>LUFS voor</span></div><div><b>${F.lufs.toFixed(1)}</b><span>LUFS na</span></div><div><b>${A.tp.toFixed(1)}</b><span>dBTP voor</span></div><div><b>${F.tp.toFixed(1)}</b><span>dBTP na</span></div><div><b>${F.crest.toFixed(1)}</b><span>dB dynamiek</span></div><div><b>${A.corr.toFixed(2)}</b><span>stereo-correlatie</span></div></div>
    <p>Keten: EQ (${acts.join(', ')||'geen correctie nodig'}) → ${loud?'multiband → ':''}glue-compressor → ${chain.some(s=>s.type==='sat')?'tape → ':''}stereo ${100+widen}% (bas mono &lt; 120 Hz) → limiter +${lim.p.gain.toFixed(1)} dB, plafond ${tg[2]} dBTP.</p>
    <p class="hint">Vergelijk met <b>A/B</b> (op gelijk volume, zo hoor je de klank en niet alleen ‘harder’). Exporteer met <b>↓ Song als WAV</b> in de Playlist (24-bit staat onder DAW / MIDI).</p>`;

@@ -26,6 +26,19 @@
   <input type="file" id="br-files" accept="audio/*,.wav,.mp3,.aif,.aiff,.flac,.ogg,.m4a" multiple hidden>
   <input type="file" id="br-dir" webkitdirectory multiple hidden>
 </aside>
+<button class="asst-btn" id="asst-btn" aria-label="AI-assistent">💬<span> AI</span></button>
+<section class="asst" id="asst" hidden aria-label="AI-assistent">
+  <div class="asst-head"><b>💬 AI-assistent</b><button class="btn small" id="asst-new" title="Nieuw gesprek">＋ Nieuw</button><button class="btn small icon" id="asst-gear" aria-label="Instellingen">⚙️</button><button class="btn small icon" id="asst-close" aria-label="Sluiten">✕</button></div>
+  <div class="asst-setup" id="asst-setup">
+    <p>De assistent draait op Claude. Vul je eigen <b>Anthropic API-sleutel</b> in (maak er een op <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>; je betaalt per gebruik). De sleutel blijft alleen op dit apparaat.</p>
+    <div class="vst-row"><input type="password" class="btn small" id="asst-key" placeholder="sk-ant-…" autocomplete="off" style="flex:1"><button class="btn small good" id="asst-key-save">Bewaren</button><button class="btn small" id="asst-key-del">Wissen</button></div>
+    <label class="small-l">Model <select class="btn small" id="asst-model"></select></label>
+  </div>
+  <div class="asst-ref"><span id="asst-ref"></span><button class="btn small" id="asst-ref-btn">📎 Referentietrack</button><input type="file" id="asst-ref-file" accept="audio/*,.wav,.mp3,.flac,.m4a,.aif,.aiff,.ogg" hidden></div>
+  <div class="asst-msgs" id="asst-msgs" aria-live="polite"></div>
+  <div class="asst-think" id="asst-think" hidden>AI denkt en werkt…</div>
+  <div class="asst-in"><textarea id="asst-in" rows="2" placeholder="Zeg wat je wilt… (bijv. maak een afrobeat op 108 BPM)"></textarea><button class="btn small icon" id="asst-mic" aria-label="Inspreken">🎤</button><button class="btn small" id="asst-stop" hidden>■</button><button class="btn good" id="asst-send">➤</button></div>
+</section>
 <div class="app">
   <header class="top">
     <div class="brand"><div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><strong>MPC Touch Studio</strong><small>Sampler · Beat maker · MIDI voor FL Studio, Ableton & Logic</small></div></div>
@@ -297,6 +310,7 @@
 <script src="js/fxrack.js"></script>
 <script src="js/aimix.js"></script>
 <script src="js/vst.js"></script>
+<script src="js/assistant.js"></script>
 <script src="js/song.js"></script>
 <script src="js/theory.js"></script>
 <script src="js/audio.js"></script>
