@@ -10,7 +10,7 @@ const mkInsert=i=>({id:i,name:`Insert ${i}`,vol:80,pan:0,mute:false,solo:false,f
 function freshInserts(){return Array.from({length:N_INSERTS},(_,k)=>mkInsert(k+1))}
 function sanitizeInserts(arr,tracks){const out=freshInserts();
  if(Array.isArray(arr))for(const x of arr){const i=x&&+x.id;if(!(i>=1&&i<=N_INSERTS))continue;const s=out[i-1];
-  s.name=String(x.name||s.name).slice(0,16);s.vol=clamp(Number(x.vol??80),0,125);s.pan=clamp(Number(x.pan??0),-100,100);s.mute=!!x.mute;s.solo=!!x.solo;s.fx=x.fx;fxOf(s)}
+  s.name=String(x.name||s.name).slice(0,16);s.vol=clamp(Number(x.vol??80),0,125);s.pan=clamp(Number(x.pan??0),-100,100);s.mute=!!x.mute;s.solo=!!x.solo;s.fx=x.fx;fxOf(s);s.vst=Array.isArray(x.vst)?x.vst.filter(e=>e&&typeof e.path==='string').slice(0,8).map(e=>({path:e.path,name:String(e.name||'').slice(0,60),state:typeof e.state==='string'?e.state:null,uid:e.uid})):[];s.slots=typeof sanitizeSlots==='function'?sanitizeSlots(x.slots):(Array.isArray(x.slots)?x.slots:[])}
  else for(const t of tracks){/* migratie: oude spoor-FX naar de insert van dat spoor */if(t.insert>=1&&t.insert<=N_INSERTS&&t.fx){out[t.insert-1].fx=t.fx;fxOf(out[t.insert-1]);out[t.insert-1].name=t.name.slice(0,16)}}
  return out}
 const insById=id=>song.inserts&&song.inserts[id-1]||null;
@@ -26,17 +26,18 @@ function buildInsertChain(c,s,master,meter){const f=fxOf(s),inp=c.createGain();
  const hi=c.createBiquadFilter();hi.type='highshelf';hi.frequency.value=6000;hi.gain.value=f.high;
  const comp=c.createDynamicsCompressor();setComp(comp,f);
  const g=c.createGain();g.gain.value=insGainVal(s);
- inp.connect(lo);lo.connect(mid);mid.connect(hi);hi.connect(comp);comp.connect(g);
+ inp.connect(lo);lo.connect(mid);mid.connect(hi);hi.connect(comp);
+ const rack=buildSlotChain(c,Array.isArray(s.slots)?s.slots:[],!!meter);comp.connect(rack.inp);rack.out.connect(g);if(meter)liveChains.set(s.id,rack);
  let end=g,p=null;if(c.createStereoPanner){p=c.createStereoPanner();p.pan.value=s.pan/100;g.connect(p);end=p}end.connect(master);
  let an=null;if(meter){an=c.createAnalyser();an.fftSize=512;end.connect(an)}
  const bus=getBuses(c,master),rs=c.createGain(),ds=c.createGain();rs.gain.value=f.rev/100;ds.gain.value=f.dly/100;end.connect(rs);rs.connect(bus.revIn);end.connect(ds);ds.connect(bus.dlyIn);
- return{inp,lo,mid,hi,comp,g,p,rs,ds,an}}
+ return{inp,lo,mid,hi,comp,g,p,rs,ds,an,rack}}
 function buildTrackStrip(c,t,dest){const inp=c.createGain(),g=c.createGain();g.gain.value=trackGainVal(t);inp.connect(g);let end=g,p=null;
  if(c.createStereoPanner){p=c.createStereoPanner();p.pan.value=t.pan/100;g.connect(p);end=p}end.connect(dest);return{inp,g,p,end}}
 /* live */
 const liveInsertNodes=new Map();let masterAn=null;
 function liveInsertIn(id){if(!id||!insById(id))return masterNode;const ac=ensureAudio();if(!ac)return masterNode;let n=liveInsertNodes.get(id);if(!n){n=buildInsertChain(ac,insById(id),masterNode,true);liveInsertNodes.set(id,n)}return n.inp}
-function resetLiveInserts(){liveInsertNodes.forEach(n=>{try{n.inp.disconnect();n.g.disconnect();n.p&&n.p.disconnect()}catch(e){}});liveInsertNodes.clear()}
+function resetLiveInserts(){if(typeof resetFxChains==='function')resetFxChains();liveInsertNodes.forEach(n=>{try{n.inp.disconnect();n.g.disconnect();n.p&&n.p.disconnect()}catch(e){}});liveInsertNodes.clear()}
 function updateInsertFx(s){const n=liveInsertNodes.get(s.id);if(!n||!ctx)return;const f=fxOf(s),now=ctx.currentTime,st=(prm,v)=>prm.setTargetAtTime(v,now,.02);
  st(n.lo.gain,f.low);st(n.mid.gain,f.mid);st(n.mid.frequency,f.midF);st(n.hi.gain,f.high);setComp(n.comp,f);st(n.rs.gain,f.rev/100);st(n.ds.gain,f.dly/100);if(n.p)st(n.p.pan,s.pan/100)}
 function updateInsertGains(){if(!ctx||!song.inserts)return;for(const s of song.inserts){const n=liveInsertNodes.get(s.id);if(!n)continue;n.g.gain.setTargetAtTime(insGainVal(s),ctx.currentTime,.02);if(n.p)n.p.pan.setTargetAtTime(s.pan/100,ctx.currentTime,.02)}}
@@ -68,7 +69,7 @@ function renderMixer(){const root=$('#mix-strips');if(!root||!song.inserts)retur
  root.append(strip(0));for(const s of song.inserts)root.append(strip(s.id));renderInsertFx();startMeters()}
 function renderInsertFx(){const box=$('#mix-fx-body');if(!box)return;box.innerHTML='';const id=MIX.sel;
  const sec=(title)=>{const s=document.createElement('div');s.className='fx-sec';const h=document.createElement('h3');h.textContent=title;s.append(h);box.append(s);return s};
- if(id===0){const mf=masterFx(),m=sec('Master: reverb- en delay-bus');
+ if(id===0){renderSlotRack(box,'master');if(typeof renderAiPanel==='function')renderAiPanel(box);if(typeof renderVstPanel==='function')renderVstPanel(box,'master');const mf=masterFx(),m=sec('Master: reverb- en delay-bus');
   m.append(fxSlider('Reverb-lengte',.3,6,.1,mf.revDecay,v=>v.toFixed(1)+' s',v=>{mf.revDecay=v;clearTimeout(renderInsertFx.t);renderInsertFx.t=setTimeout(updateBuses,250);saveSongSoon()}));
   m.append(fxSlider('Reverb-niveau',0,150,1,mf.revLvl,v=>v+'%',v=>{mf.revLvl=v;updateBuses();saveSongSoon()}));
   const dw=document.createElement('label');dw.className='fx-f';dw.innerHTML='<span class="fx-l">Delay-tijd</span><select></select><output></output>';
@@ -77,7 +78,8 @@ function renderInsertFx(){const box=$('#mix-fx-body');if(!box)return;box.innerHT
   m.append(fxSlider('Delay-niveau',0,150,1,mf.dlyLvl,v=>v+'%',v=>{mf.dlyLvl=v;updateBuses();saveSongSoon()}));return}
  const s=insById(id);if(!s)return;const f=fxOf(s),t=sec(`Insert ${id}: ${s.name}`);
  for(const [k,l,mn,mx,st,fmt] of FX_FIELDS){if(k==='thr')t.append(compToggle(f,()=>{updateInsertFx(s);saveSongSoon()}));t.append(fxSlider(l,mn,mx,st,f[k],fmt,v=>{f[k]=v;updateInsertFx(s);saveSongSoon()}))}
- const rb=document.createElement('button');rb.className='btn small';rb.textContent='FX resetten';rb.onclick=()=>{pushHistory();s.fx=FX_DEFAULT();updateInsertFx(s);renderInsertFx();saveSongSoon()};t.append(rb)}
+ const rb=document.createElement('button');rb.className='btn small';rb.textContent='Kanaal-EQ resetten';rb.onclick=()=>{pushHistory();s.fx=FX_DEFAULT();updateInsertFx(s);renderInsertFx();saveSongSoon()};t.append(rb);
+ renderSlotRack(box,id);if(typeof renderVstPanel==='function')renderVstPanel(box,id);if(typeof renderAiPanel==='function')renderAiPanel(box)}
 /* Spoor → insert (in de Playlist onder "Mixer-routing") */
 function renderFxPanel(){const box=$('#fx-body');if(!box)return;box.innerHTML='';const t=song.tracks.find(x=>x.id===selTrack);if(!t)return;
  const w=document.createElement('div');w.className='route-row';w.innerHTML='<span></span><select aria-label="Mixer-insert"></select><button class="btn small">Open mixer ☷</button>';

@@ -23,7 +23,7 @@ const NAME_TO_NOTE=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','
 const noteLabel=n=>NAME_TO_NOTE[n%12]+(Math.floor(n/12)-1);
 
 /* ---------- Status & opslag ---------- */
-const fresh=()=>({bpm:100,swing:50,swingMpc:true,stepLength:16,activeBank:0,pattern:0,patterns:Array.from({length:4},()=>({})),patNames:{},names:{},vols:{},pans:{},mutes:{},tunes:{},trims:{},wavFmt:'24-44100',master:85,octave:3,instrument:'piano',velMode:'fixed',daw:'fl',midiRoute:'auto',padCh:9,keyCh:0,padBase:36,clockOut:false,clockFollow:false,songMode:false,songPattern:false,songZoom:28,tfxMode:'filter',tfxCC:{x:null,y:null},plSrc:'p0',plSnap:'beat',recLatency:-1,edZoom:160,edGrid:'1/16',metro:false,full:false,nr:false,nrRate:'1/16',lev:'off',levSrc:null,thRoot:0,thScale:'major',chGroup:'std',chVoicing:'close',chDur:'1/2',chType:'maj7',stepIns:false,kbKeyW:44,kbShowScale:true,kbLock:false,kbChordMode:false,edTool:'draw',edScaleHi:true,edStamp:'c:maj7',edVelLane:true,edRowH:null,edQStr:100,edQEnds:false,edArp:'up',plFull:null});
+const fresh=()=>({bpm:100,swing:50,swingMpc:true,stepLength:16,activeBank:0,pattern:0,patterns:Array.from({length:4},()=>({})),patNames:{},names:{},vols:{},pans:{},mutes:{},tunes:{},trims:{},wavFmt:'24-44100',master:85,octave:3,instrument:'piano',velMode:'fixed',daw:'fl',midiRoute:'auto',padCh:9,keyCh:0,padBase:36,clockOut:false,clockFollow:false,songMode:false,songPattern:false,songZoom:28,tfxMode:'filter',tfxCC:{x:null,y:null},plSrc:'p0',plSnap:'beat',recLatency:-1,edZoom:160,edGrid:'1/16',metro:false,full:false,nr:false,nrRate:'1/16',lev:'off',levSrc:null,thRoot:0,thScale:'major',chGroup:'std',chVoicing:'close',chDur:'1/2',chType:'maj7',stepIns:false,kbKeyW:44,kbShowScale:true,kbLock:false,kbChordMode:false,edTool:'draw',edScaleHi:true,edStamp:'c:maj7',edVelLane:true,edRowH:null,edQStr:100,edQEnds:false,edArp:'up',plFull:null,aiTarget:'stream',aiGenre:'balanced'});
 function sanitize(src){const f=fresh();src=src||{};let s={...f,...src};
  if(src.swingMpc!==true){s.swing=Math.round(50+clamp(+src.swing||0,0,65)*.325);s.swingMpc=true} // oude 0–65 → MPC 50–75%
  if(s.velMode==='full'){s.velMode='fixed';s.full=true}
@@ -64,7 +64,7 @@ function ensureAudio(){
   try{ctx=new AC({latencyHint:'interactive'})}catch(e){ctx=new AC()}
   masterNode=ctx.createGain();masterNode.gain.value=state.master/100;
   const lim=ctx.createDynamicsCompressor();lim.threshold.value=-6;lim.knee.value=7;lim.ratio.value=7;lim.attack.value=.005;lim.release.value=.12;
-  masterNode.connect(typeof setupTouchFx==='function'?setupTouchFx(ctx,lim):lim);lim.connect(ctx.destination)}
+  window.legacyLim=lim;const tfxIn=typeof setupTouchFx==='function'?setupTouchFx(ctx,lim):lim;masterNode.connect(typeof setupMasterChain==='function'?setupMasterChain(ctx,tfxIn):tfxIn);lim.connect(ctx.destination);if(typeof syncLegacyLimiter==='function')syncLegacyLimiter()}
  if(ctx.state!=='running')ctx.resume().catch(()=>{});
  return ctx}
 function unlockAudio(){if(audioUnlocked&&ctx&&ctx.state==='running')return;const c=ensureAudio();if(!c)return;
