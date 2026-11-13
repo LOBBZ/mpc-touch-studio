@@ -14,7 +14,7 @@ const clipTicks=id=>{const c=clips.get(id);return c?secToTicks(c.dur):0};
 const recAudioTrack=()=>song.tracks.find(t=>t.arm&&t.type==='audio')||null;
 
 async function loadClipRecord(key,item){try{const ac=ensureAudio();if(!ac||!item||!item.pcm)return;const pcm=item.pcm instanceof Float32Array?item.pcm:new Float32Array(item.pcm);
- const buf=ac.createBuffer(1,pcm.length,item.sr||ac.sampleRate);buf.copyToChannel?buf.copyToChannel(pcm,0):buf.getChannelData(0).set(pcm);addClip(String(key).slice(5),buf)}catch(e){console.warn('Clip niet geladen',key,e)}}
+ const R=item.pcmR?(item.pcmR instanceof Float32Array?item.pcmR:new Float32Array(item.pcmR)):null,buf=ac.createBuffer(R?2:1,pcm.length,item.sr||ac.sampleRate);buf.getChannelData(0).set(pcm);if(R)buf.getChannelData(1).set(R.subarray(0,pcm.length));addClip(String(key).slice(5),buf)}catch(e){console.warn('Clip niet geladen',key,e)}}
 async function gcClips(){try{if(!db)return;const used=new Set();for(const t of song.tracks)for(const c of t.clips||[])if(c.kind==='audio')used.add(c.clipId);
  for(const id of [...clips.keys()])if(!used.has(id)){clips.delete(id);await dbDelete('clip:'+id)}}catch(e){}}
 

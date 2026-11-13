@@ -83,7 +83,7 @@ function tfxDraw(){const c=tfxEl.cv;if(!c||tfxEl.box.hidden)return;const dpr=win
  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,'#1c2433');gr.addColorStop(1,'#101722');g.fillStyle=gr;g.fillRect(0,0,W,H);
  g.strokeStyle='#ffffff10';g.lineWidth=1;for(let i=1;i<8;i++){g.beginPath();g.moveTo(i*W/8,0);g.lineTo(i*W/8,H);g.stroke();g.beginPath();g.moveTo(0,i*H/8);g.lineTo(W,i*H/8);g.stroke()}
  const M=TFX_MODES[state.tfxMode];g.fillStyle='#ffffff0d';g.font=`800 ${Math.round(Math.min(W,H)/5)}px system-ui,sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(M.name.toUpperCase(),W/2,H/2);
- g.font='600 11px system-ui,sans-serif';g.fillStyle='#91a5b9';g.textAlign='center';g.fillText(M.x+'  →',W/2,H-10);
+ g.font='600 11px system-ui,sans-serif';g.fillStyle='#a5b2b8';g.textAlign='center';g.fillText(M.x+'  →',W/2,H-10);
  g.save();g.translate(12,H/2);g.rotate(-Math.PI/2);g.fillText(M.y+'  →',0,0);g.restore();
  const now=performance.now();TFX.trail=TFX.trail.filter(p=>now-p.t<500);for(const p of TFX.trail){const a=1-(now-p.t)/500;g.fillStyle=`rgba(255,185,76,${a*.35})`;g.beginPath();g.arc(p.x*W,(1-p.y)*H,10*a+3,0,Math.PI*2);g.fill()}
  const px=TFX.x*W,py=(1-TFX.y)*H;
@@ -92,8 +92,9 @@ function tfxDraw(){const c=tfxEl.cv;if(!c||tfxEl.box.hidden)return;const dpr=win
  g.strokeStyle='#ffffff22';g.setLineDash([3,4]);g.beginPath();g.moveTo(px,0);g.lineTo(px,H);g.moveTo(0,py);g.lineTo(W,py);g.stroke();g.setLineDash([]);
  if(TFX.trail.length||TFX.active)requestAnimationFrame(tfxDraw)}
 function tfxPos(e){const r=tfxEl.cv.getBoundingClientRect();TFX.x=clamp((e.clientX-r.left)/r.width,0,1);TFX.y=clamp(1-(e.clientY-r.top)/r.height,0,1);TFX.trail.push({x:TFX.x,y:TFX.y,t:performance.now()});if(TFX.trail.length>40)TFX.trail.shift()}
-tfxEl.cv.addEventListener('pointerdown',e=>{if(TFX.pointer!=null)return;e.preventDefault();TFX.pointer=e.pointerId;try{tfxEl.cv.setPointerCapture(e.pointerId)}catch(x){}tfxPos(e);tfxEngage()});
-tfxEl.cv.addEventListener('pointermove',e=>{if(e.pointerId!==TFX.pointer)return;tfxPos(e);tfxParams();$('#tfx-read').textContent='● '+tfxReadout();tfxDraw()});
+const tfxRec=()=>{if(typeof recAuto==='function')recAuto('tfx#'+tfxSeg,[TFX.x,TFX.y],state.tfxMode)};
+tfxEl.cv.addEventListener('pointerdown',e=>{if(TFX.pointer!=null)return;e.preventDefault();TFX.pointer=e.pointerId;try{tfxEl.cv.setPointerCapture(e.pointerId)}catch(x){}tfxPos(e);tfxEngage();if(typeof recTfxStart==='function')recTfxStart();tfxRec()});
+tfxEl.cv.addEventListener('pointermove',e=>{if(e.pointerId!==TFX.pointer)return;tfxPos(e);tfxParams();tfxRec();$('#tfx-read').textContent='● '+tfxReadout();tfxDraw()});
 const tfxUp=e=>{if(e.pointerId!==TFX.pointer)return;TFX.pointer=null;if(!TFX.latch)tfxRelease();else tfxUI()};
 ['pointerup','pointercancel'].forEach(n=>tfxEl.cv.addEventListener(n,tfxUp));
 tfxEl.cv.addEventListener('contextmenu',e=>e.preventDefault());
@@ -105,7 +106,7 @@ $('#tfx-learn-x').onclick=()=>{TFX.learn=TFX.learn==='x'?null:'x';tfxUI()};$('#t
 /* MIDI-controller (bijv. Q-Link-knoppen van een MPC in controllermodus) */
 function tfxMidiCC(ch,cc,val){if(TFX.learn){state.tfxCC[TFX.learn]=cc;toast(`Touch FX ${TFX.learn.toUpperCase()} = CC ${cc}`);TFX.learn=null;save();tfxUI();return true}
  const cfg=state.tfxCC;if(cc!==cfg.x&&cc!==cfg.y)return false;if(cc===cfg.x)TFX.x=val/127;if(cc===cfg.y)TFX.y=val/127;
- if(!TFX.active)tfxEngage();else tfxParams();clearTimeout(TFX.ccTimer);if(!TFX.latch)TFX.ccTimer=setTimeout(()=>{if(TFX.pointer==null)tfxRelease()},700);
+ if(!TFX.active){tfxEngage();if(typeof recTfxStart==='function')recTfxStart()}else tfxParams();tfxRec();clearTimeout(TFX.ccTimer);if(!TFX.latch)TFX.ccTimer=setTimeout(()=>{if(TFX.pointer==null)tfxRelease()},700);
  TFX.trail.push({x:TFX.x,y:TFX.y,t:performance.now()});tfxUI();return true}
 window.addEventListener('keydown',e=>{if(e.shiftKey&&!e.metaKey&&!e.ctrlKey&&e.code==='KeyX'){const t=e.target;if(t&&t.closest&&t.closest('input:not([type=range]),select,textarea'))return;e.preventDefault();ensureAudio();tfxToggle()}});
 window.addEventListener('resize',()=>tfxDraw());

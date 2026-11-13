@@ -100,6 +100,15 @@ Dubbeltik een notenclip om hem te openen.
 - **Per spoor:** EQ (laag/mid/hoog), compressor, reverb- en delay-send en pan.
 - **Master:** reverb en een delay die meeloopt met de BPM.
 
+## Zoals FL Studio: Channel Rack, Mixer, Automation en Browser
+
+- **Channel Rack + 999 patronen** — tab *Channel Rack*. Kies het patroon met ◀ ▶ bovenin (1–999), ✎ = hernoemen. Elke rij heeft mute-LED, pan en volume. In de Playlist kies je *Pattern N* en tekent het als clip.
+- **Mixer met 32 inserts** — tab *Mixer*. Elk spoor kiest zijn insert (FX-knop op het spoor). Per insert: fader, pan, EQ, compressor, sends naar Reverb/Delay, meters, mute/solo.
+- **Automation-clips** — in de Playlist bij de bron *📈 Automation-clip* kiezen en tekenen. Dubbeltik opent de curve: tik = punt erbij, tik op punt = weg, slepen = verplaatsen. Bestuurt master-volume, insert-volume/pan of Touch FX (X/Y).
+  Opnemen kan ook: druk **Rec + Play** en beweeg een mixer-fader of veeg over de Touch FX — dat wordt vanzelf een automation-clip.
+- **Browser** (📁 links, of Alt+F8 zoals in FL) — al je pads, instrumenten, opnames en eigen bestanden/mappen. ▶ = beluisteren, *→ Pad* = op de geselecteerde pad, *→ Playlist* = audioclip bij de gele startmarkering. Op Windows kun je ook slepen naar de playlist of een pad.
+- **FL-look** — grafiet panelen met oranje/groene accenten.
+
 ## Touch FX (effecten met je vinger)
 
 Druk op **XY** in de transportbalk (of ⇧X). Sleep met je vinger of muis over het vlak: zolang je het aanraakt staat het effect aan. **HOLD** laat het effect aan na loslaten.
