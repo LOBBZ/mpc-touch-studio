@@ -39,16 +39,23 @@ jobs:
           node-version: 20
       - name: Pakketten installeren
         run: npm install --no-audit --no-fund
-      - name: Mac-app bouwen (Apple Silicon)
-        run: npx electron-builder --mac dmg zip --arm64 --publish never
+      - name: Mac-app bouwen (Apple Silicon), ad-hoc ondertekenen, dmg maken
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          npx electron-builder --mac dir --arm64 --publish never
+          APP="dist/mac-arm64/MPC Touch Studio.app"
+          find "$APP/Contents/Resources/vmpc" -maxdepth 1 \( -name "*.app" -o -name "*.vst3" -o -name "*.component" \) -exec codesign --force --deep -s - {} \; 2>/dev/null || true
+          [ -f "$APP/Contents/Resources/bridge/MPC-Touch-Bridge" ] && codesign --force -s - "$APP/Contents/Resources/bridge/MPC-Touch-Bridge"
+          codesign --force --deep -s - "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          npx electron-builder --mac dmg zip --arm64 --prepackaged "$APP" --publish never
       - name: Mac-app testen
         run: |
           ls -la dist
-          APP=$(find dist -maxdepth 2 -name "MPC Touch Studio.app" | head -1); echo "$APP"
-          codesign -dv "$APP" 2>&1 | head -5 || true
-          ls "$APP/Contents/Resources/bridge" "$APP/Contents/Resources/vmpc" 2>&1
+          APP="dist/mac-arm64/MPC Touch Studio.app"; echo "$APP"
+          codesign -dv "$APP" 2>&1 | head -6 || true
+          ls "$APP/Contents/Resources/bridge" "$APP/Contents/Resources/vmpc" 2>&1 || true
           "$APP/Contents/MacOS/MPC Touch Studio" > app.log 2>&1 &
           for i in $(seq 1 30); do sleep 2; R=$(curl -s http://127.0.0.1:8765/vst/status) && [ -n "$R" ] && break; done
           echo "Meegestarte bridge: $R"

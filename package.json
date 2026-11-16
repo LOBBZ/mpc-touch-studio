@@ -53,7 +53,7 @@
       ],
       "category": "public.app-category.music",
       "icon": "www/icons/icon-1024.png",
-      "identity": "-",
+      "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "extendInfo": {
