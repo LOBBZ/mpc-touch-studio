@@ -27,6 +27,17 @@ jobs:
           $r | ConvertTo-Json
           Stop-Process -Id $p.Id -Force
           if (-not $r.available) { throw "VST3-host niet beschikbaar in de bridge-exe: $($r.error)" }
+      - name: VMPC2000XL ophalen (echte MPC2000XL, uit release vmpc-…)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "vmpc-" + (Get-Content vmpc\VMPC_REF)[1]
+          New-Item -ItemType Directory -Force vmpc-dist | Out-Null
+          gh release download $tag -R ${{ github.repository }} -p VMPC2000XL-windows-x64.zip -D . 2>$null
+          if (Test-Path VMPC2000XL-windows-x64.zip) { Expand-Archive VMPC2000XL-windows-x64.zip -DestinationPath tmpv -Force; Copy-Item -Recurse tmpv\VMPC2000XL\* vmpc-dist\ } else { Write-Host "::warning::Nog geen VMPC2000XL-release ($tag); deze build heeft hem niet" }
+          Get-ChildItem vmpc-dist | ForEach-Object { Write-Host "vmpc: $($_.Name)" }
+          exit 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -73,6 +84,8 @@ jobs:
           $log = "$env:APPDATA\MPC Touch Studio\bridge.log"
           if (Test-Path $log) { Write-Host "--- bridge.log ---"; Get-Content $log | Select-Object -First 40 | ForEach-Object { Write-Host "LOG $_" } } else { Write-Host "Geen bridge.log in $log"; Get-ChildItem "$env:APPDATA" | Where-Object { $_.Name -like "*MPC*" } | ForEach-Object { Write-Host "AppData: $($_.FullName)" } }
           Get-ChildItem "$env:LOCALAPPDATA\Programs\mpc-touch-studio\resources" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "resources: $($_.Name)" }
+          $v = "$env:LOCALAPPDATA\Programs\mpc-touch-studio\resources\vmpc\VMPC2000XL.exe"
+          if (Test-Path $v) { $vp = Start-Process -FilePath $v -PassThru; Start-Sleep -Seconds 12; Write-Host "VMPC2000XL meegeleverd en draait: $(-not $vp.HasExited)"; if (-not $vp.HasExited) { Stop-Process -Id $vp.Id -Force } } else { Write-Host "VMPC2000XL niet in deze build" }
           if (-not $r) { Write-Host "::warning::Meegestarte bridge reageert niet" }
           Get-Process -Name "MPC Touch Studio","MPC-Touch-Bridge" -ErrorAction SilentlyContinue | Stop-Process -Force
           exit 0

@@ -1,7 +1,7 @@
 {
   "name": "mpc-touch-studio",
   "productName": "MPC Touch Studio",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Touch sampler, step sequencer en multitrack-recorder met MIDI naar FL Studio, Ableton en Logic.",
   "main": "electron/main.js",
   "author": "Ryan",
@@ -23,7 +23,8 @@
     "@capacitor/core": "^6.1.2",
     "@capacitor/android": "^6.1.2",
     "@capacitor/filesystem": "^6.0.0",
-    "@capacitor/share": "^6.0.0"
+    "@capacitor/share": "^6.0.0",
+    "@capacitor/app-launcher": "^6.0.0"
   },
   "build": {
     "appId": "com.mpctouchstudio.app",
@@ -47,12 +48,17 @@
     },
     "mac": {
       "target": [
+        "dmg",
         "zip"
       ],
-      "icon": "www/icons/icon-1024.png",
       "category": "public.app-category.music",
+      "icon": "www/icons/icon-1024.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "MPC Touch Studio gebruikt de microfoon om zang en instrumenten op te nemen op een audiospoor."
+        "NSMicrophoneUsageDescription": "MPC Touch Studio gebruikt de microfoon om audio op te nemen.",
+        "CFBundleDisplayName": "MPC Touch Studio"
       }
     },
     "artifactName": "MPC-Touch-Studio-${version}-${arch}.${ext}",
@@ -76,7 +82,18 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "vmpc-dist",
+        "to": "vmpc",
+        "filter": [
+          "**/*"
+        ]
       }
-    ]
+    ],
+    "dmg": {
+      "artifactName": "MPC-Touch-Studio-${version}-mac-${arch}.${ext}",
+      "title": "MPC Touch Studio"
+    }
   }
 }

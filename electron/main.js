@@ -1,13 +1,31 @@
 // Electron-hoofdproces: draait MPC Touch Studio als Windows/macOS-app.
 // Web MIDI werkt hier direct (MPC/keyboard via USB; naar FL Studio via loopMIDI).
 // De meegeleverde bridge (MPC-Touch-Bridge.exe) start vanzelf mee: daarmee laadt de app je eigen VST3-plugins.
-const { app, BrowserWindow, session, shell } = require('electron');
+const { app, BrowserWindow, session, shell, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 
 let bridge = null;
+
+// ---- VMPC2000XL (open-source MPC2000XL, GPL-3.0) die met de app wordt meegeleverd
+const VMPC_DIR = path.join(process.resourcesPath || '', 'vmpc');
+function vmpcApp() {
+  const p = process.platform === 'win32' ? path.join(VMPC_DIR, 'VMPC2000XL.exe') : path.join(VMPC_DIR, 'VMPC2000XL.app');
+  return fs.existsSync(p) ? p : null;
+}
+ipcMain.handle('vmpc-info', () => ({ installed: !!vmpcApp(), vst3: fs.existsSync(path.join(VMPC_DIR, 'VMPC2000XL.vst3')), platform: process.platform }));
+ipcMain.handle('vmpc-launch', () => {
+  const p = vmpcApp();
+  if (!p) return { ok: false, error: 'VMPC2000XL zit niet in deze installatie' };
+  try {
+    const child = process.platform === 'darwin' ? spawn('open', ['-a', p], { detached: true, stdio: 'ignore' }) : spawn(p, [], { detached: true, stdio: 'ignore', cwd: VMPC_DIR });
+    child.unref();
+    return { ok: true };
+  } catch (e) { return { ok: false, error: String(e) }; }
+});
+ipcMain.handle('vmpc-folder', (_e, which) => { shell.openPath(which === 'vst3' ? VMPC_DIR : path.join(app.getPath('documents'), 'VMPC2000XL')); return true; });
 const BRIDGE_PORT = 8765;
 
 function bridgePin() {
@@ -37,7 +55,7 @@ function createWindow(query) {
     backgroundColor: '#1c2226', title: 'MPC Touch Studio',
     icon: path.join(__dirname, '..', 'www', 'icons', 'icon-512.png'),
     autoHideMenuBar: true,
-    webPreferences: { contextIsolation: true, sandbox: true, autoplayPolicy: 'no-user-gesture-required' }
+    webPreferences: { contextIsolation: true, sandbox: true, autoplayPolicy: 'no-user-gesture-required', preload: path.join(__dirname, 'preload.js') }
   });
   win.loadFile(path.join(__dirname, '..', 'www', 'index.html'), { query });
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });

@@ -32,6 +32,7 @@ jobs:
         run: |
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-feature android:name="android.hardware.microphone" android:required="false" />#' $M
+          sed -i 's#</manifest>#    <queries>\n        <package android:name="nl.izmar.vmpc2000xl" />\n    </queries>\n</manifest>#' $M
           grep -n "permission\|feature" $M
           V=$(node -p "require('./package.json').version")
           sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"$V\"/" android/app/build.gradle
@@ -53,6 +54,12 @@ jobs:
           $BT/apksigner sign --ks ks.p12 --ks-pass "pass:$PW" --key-pass "pass:$PW" --ks-key-alias "$AL" --out "out/MPC-Touch-Studio-$V.apk" aligned.apk
           $BT/apksigner verify --print-certs out/*.apk | head -3
           ls -la out
+      - name: VMPC2000XL-APK erbij (echte MPC2000XL)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "vmpc-$(sed -n 2p vmpc/VMPC_REF)" -R ${{ github.repository }} -p VMPC2000XL-android-arm64.apk -D out || echo "::warning::Nog geen VMPC2000XL-release"
+          ls -la out
       - name: Bestanden bewaren
         uses: actions/upload-artifact@v4
         with:
@@ -66,5 +73,6 @@ jobs:
           make_latest: false
           body: |
             **MPC-Touch-Studio-….apk**: open dit bestand op je telefoon (bijv. Samsung S25) en tik Installeren.
+            **VMPC2000XL-android-arm64.apk**: de echte open-source MPC2000XL (GPL-3.0) — installeer hem ook, dan start je hem vanuit MPC Touch Studio (knop 🎛️ MPC2000XL).
             Eerste keer: sta "Installeren van onbekende apps" toe voor je browser of Mijn bestanden.
           files: out/*.apk

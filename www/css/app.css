@@ -511,3 +511,11 @@ body.pl-full #ed-panel[open] #ed-hint,body.pl-full #ed-panel[open] #ed-audio{dis
 .asst-think{font-size:12px;color:var(--amber)}.asst-think[hidden]{display:none}
 .asst-in{display:flex;gap:6px;align-items:flex-end}.asst-in textarea{flex:1;resize:none;border-radius:10px;border:1px solid #3f3860;background:#14121c;color:var(--text);padding:8px;font:inherit;font-size:15px}
 #asst-mic.active{background:#c43a4f;color:#fff}
+
+/* VMPC2000XL */
+.vmpc-btn{background:linear-gradient(#4a5258,#2f363a);border-color:#12171a}
+.vmpc-modal{position:fixed;inset:0;z-index:90;background:#000a;display:flex;align-items:center;justify-content:center;padding:12px}
+.vmpc-modal[hidden]{display:none}
+.vmpc-card{width:min(560px,100%);max-height:calc(100dvh - 24px);overflow:auto;background:linear-gradient(#2b3337,#1f2528);border:1px solid #4a555b;border-radius:14px;padding:14px;box-shadow:0 14px 40px #000c}
+.vmpc-card ol{padding-left:20px}.vmpc-card li{margin:4px 0}.vmpc-card details{margin:8px 0;background:#171c1f;border-radius:8px;padding:6px 10px}
+.vmpc-card summary{cursor:pointer;font-weight:600}.btn.big{font-size:17px;padding:12px 18px}.vmpc-lic{margin-top:12px;font-size:11px}

@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { repository: izzyreal/vmpc-juce, ref: '${{ needs.ref.outputs.sha }}', path: vmpc }
-      - name: Configureren (universal: Apple Silicon + Intel)
+      - name: "Configureren (universal - Apple Silicon + Intel)"
         env: { VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/ }
         run: cmake -S vmpc -B build -G Xcode -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF
       - name: Bouwen (app, VST3, AU)

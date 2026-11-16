@@ -39,6 +39,9 @@
   <div class="asst-think" id="asst-think" hidden>AI denkt en werkt…</div>
   <div class="asst-in"><textarea id="asst-in" rows="2" placeholder="Zeg wat je wilt… (bijv. maak een afrobeat op 108 BPM)"></textarea><button class="btn small icon" id="asst-mic" aria-label="Inspreken">🎤</button><button class="btn small" id="asst-stop" hidden>■</button><button class="btn good" id="asst-send">➤</button></div>
 </section>
+<div class="vmpc-modal" id="vmpc" hidden><div class="vmpc-card" role="dialog" aria-label="MPC2000XL">
+  <div class="asst-head"><b>🎛️ Echte MPC2000XL — VMPC2000XL</b><button class="btn small icon" id="vmpc-close" aria-label="Sluiten">✕</button></div>
+  <div id="vmpc-body"></div></div></div>
 <div class="app">
   <header class="top">
     <div class="brand"><div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><strong>MPC Touch Studio</strong><small>Sampler · Beat maker · MIDI voor FL Studio, Ableton & Logic</small></div></div>
@@ -48,6 +51,7 @@
   <div class="transport" id="transport">
     <div class="tbar">
       <div class="tgroup">
+        <button class="btn vmpc-btn" id="vmpc-btn" aria-label="Echte MPC2000XL (VMPC2000XL)" title="Echte MPC2000XL">🎛️<span class="lbl"> MPC2000XL</span></button>
         <button class="btn br-btn" id="br-btn" aria-label="Browser met samples (Alt+F8)" title="Browser (Alt+F8)">📁<span class="lbl"> Browser</span></button>
         <button class="btn primary" id="play">▶ Play</button>
         <button class="btn" id="stop" aria-label="Stop">■<span class="lbl"> Stop</span></button>
@@ -311,6 +315,7 @@
 <script src="js/aimix.js"></script>
 <script src="js/vst.js"></script>
 <script src="js/assistant.js"></script>
+<script src="js/vmpc.js"></script>
 <script src="js/song.js"></script>
 <script src="js/theory.js"></script>
 <script src="js/audio.js"></script>

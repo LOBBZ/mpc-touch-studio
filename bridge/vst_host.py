@@ -224,6 +224,9 @@ class Host:
         if tail_sec > 0:
             audio = np.concatenate([audio, np.zeros((channels, int(sr * tail_sec)), dtype=np.float32)], axis=1)
         chain = [self.get(i)["plugin"] for i in ids]
+        for i in ids:
+            if getattr(self.get(i)["plugin"], "is_instrument", False):
+                raise RuntimeError(f"{self.get(i)['name']} is een instrument; instrumenten kunnen (nog) niet in een effectketen")
         with self.lock:
             out = Pedalboard(chain)(audio, float(sr), reset=True)
         out = np.asarray(out, dtype=np.float32)
