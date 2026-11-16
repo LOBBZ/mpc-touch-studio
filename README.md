@@ -87,6 +87,16 @@ Dubbeltik een notenclip om hem te openen.
 - **Per spoor:** EQ (laag/mid/hoog), compressor, reverb- en delay-send en pan.
 - **Master:** reverb en een delay die meeloopt met de BPM.
 
+## 🎛️ Echte MPC2000XL (VMPC2000XL)
+De open-source MPC2000XL-emulator **VMPC2000XL** (Izmar, GPL-3.0, https://github.com/izzyreal/vmpc-juce) wordt uit de broncode gebouwd (`.github/workflows/vmpc.yml`, versie in `vmpc/VMPC_REF`) en per platform meegeleverd. Knop **🎛️ MPC2000XL** in de app:
+- **Windows / Mac-app**: zit erin → ▶ Start MPC2000XL. De VST3 (en AU op Mac) staat ook in de app-map, voor FL Studio. Spelen vanuit de app via loopMIDI (Windows) of IAC (Mac).
+- **Android**: eigen app `VMPC2000XL-android-arm64.apk` (in de Android-release); daarna start je hem vanuit MPC Touch Studio.
+- **iPhone/iPad**: `VMPC2000XL-ios-unsigned.ipa` installeren met Sideloadly/AltStore en je Apple ID (gratis Apple ID: elke 7 dagen opnieuw ondertekenen).
+- Losse bestanden: release `vmpc-0.9.21`. Geen officiële Akai-software.
+
+## Mac-app
+Release "voor Mac": `MPC-Touch-Studio-…-mac-arm64.dmg` (Apple-chip, M1 en nieuwer). Sleep naar Programma's; eerste keer rechtsklik › Open. VST3/AU-bridge en VMPC2000XL zitten erin.
+
 ## 💬 AI-assistent (praat met de app)
 Tik op de paarse **💬**-knop. Zeg in gewone taal wat je wilt (typen of 🎤 inspreken waar de browser dat kan):
 - "Maak een trap-beat op 140 BPM met 808 en hi-hat rolls", "zet er jazzy akkoorden onder (Cm9 – Abmaj7 – Fm9 – G7alt)"
