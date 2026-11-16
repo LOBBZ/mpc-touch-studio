@@ -20,7 +20,7 @@ ipcMain.handle('vmpc-launch', () => {
   const p = vmpcApp();
   if (!p) return { ok: false, error: 'VMPC2000XL zit niet in deze installatie' };
   try {
-    const child = process.platform === 'darwin' ? spawn('open', ['-a', p], { detached: true, stdio: 'ignore' }) : spawn(p, [], { detached: true, stdio: 'ignore', cwd: VMPC_DIR });
+    const child = process.platform === 'darwin' ? spawn('open', [p], { detached: true, stdio: 'ignore' }) : spawn(p, [], { detached: true, stdio: 'ignore', cwd: VMPC_DIR });
     child.unref();
     return { ok: true };
   } catch (e) { return { ok: false, error: String(e) }; }

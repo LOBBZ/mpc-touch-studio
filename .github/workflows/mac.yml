@@ -60,7 +60,7 @@ jobs:
           for i in $(seq 1 30); do sleep 2; R=$(curl -s http://127.0.0.1:8765/vst/status) && [ -n "$R" ] && break; done
           echo "Meegestarte bridge: $R"
           pgrep -fl "MPC Touch Studio" | head -3
-          if [ -d "$APP/Contents/Resources/vmpc/VMPC2000XL.app" ]; then open -a "$APP/Contents/Resources/vmpc/VMPC2000XL.app"; sleep 12; pgrep -fl VMPC2000XL && echo "VMPC2000XL draait"; fi
+          if [ -d "$APP/Contents/Resources/vmpc/VMPC2000XL.app" ]; then open "$PWD/$APP/Contents/Resources/vmpc/VMPC2000XL.app"; sleep 12; pgrep -fl VMPC2000XL && echo "VMPC2000XL draait" || echo "::warning::VMPC2000XL niet zichtbaar gestart"; fi
           pkill -f "MPC Touch Studio" || true; pkill -f VMPC2000XL || true; pkill -f MPC-Touch-Bridge || true
       - uses: actions/upload-artifact@v4
         with:
