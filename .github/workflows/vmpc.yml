@@ -1,0 +1,169 @@
+name: VMPC2000XL bouwen (open-source MPC2000XL)
+# Bouwt de echte VMPC2000XL (izzyreal/vmpc-juce, GPL-3.0) uit de broncode voor alle platformen
+# en zet de bestanden in release "vmpc-<versie>" van deze repo. De app-builds halen ze daar op.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['vmpc/VMPC_REF', '.github/workflows/vmpc.yml']
+permissions:
+  contents: write
+env:
+  VMPC_REPO: izzyreal/vmpc-juce
+jobs:
+  ref:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.r.outputs.sha }}
+      version: ${{ steps.r.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: r
+        run: |
+          echo "sha=$(sed -n 1p vmpc/VMPC_REF)" >> $GITHUB_OUTPUT
+          echo "version=$(sed -n 2p vmpc/VMPC_REF)" >> $GITHUB_OUTPUT
+
+  windows:
+    needs: ref
+    runs-on: windows-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with: { repository: izzyreal/vmpc-juce, ref: '${{ needs.ref.outputs.sha }}', path: vmpc }
+      - name: Configureren
+        shell: cmd
+        env: { VMPC2000XL_DOCUMENTS_PATH: 'C:\tmp\vmpc2000xl_documents' }
+        run: |
+          cmake -S vmpc -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF || (rmdir /s /q build & cmake -S vmpc -B build -G "Visual Studio 17 2022" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF)
+      - name: Bouwen (app + VST3)
+        shell: cmd
+        env: { VMPC2000XL_DOCUMENTS_PATH: 'C:\tmp\vmpc2000xl_documents' }
+        run: cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 -- /m
+      - name: Inpakken
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out\VMPC2000XL | Out-Null
+          Copy-Item build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe out\VMPC2000XL\
+          Copy-Item -Recurse build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 out\VMPC2000XL\
+          Copy-Item vmpc\LICENSE.txt out\VMPC2000XL\LICENSE-GPL3.txt
+          "VMPC2000XL ${{ needs.ref.outputs.version }} - broncode: https://github.com/izzyreal/vmpc-juce/tree/${{ needs.ref.outputs.sha }}" | Out-File -Encoding utf8 out\VMPC2000XL\BRONCODE.txt
+          Compress-Archive -Path out\VMPC2000XL -DestinationPath VMPC2000XL-windows-x64.zip -Force
+      - name: Starttest
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath out\VMPC2000XL\VMPC2000XL.exe -PassThru
+          Start-Sleep -Seconds 15
+          $alive = -not $p.HasExited
+          Write-Host "VMPC2000XL draait na 15 s: $alive"
+          if ($alive) { Stop-Process -Id $p.Id -Force } else { Write-Host "::warning::VMPC2000XL stopte (exitcode $($p.ExitCode)) - op een runner zonder geluidskaart kan dat normaal zijn" }
+      - uses: actions/upload-artifact@v4
+        with: { name: vmpc-windows, path: VMPC2000XL-windows-x64.zip }
+
+  macos:
+    needs: ref
+    runs-on: macos-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with: { repository: izzyreal/vmpc-juce, ref: '${{ needs.ref.outputs.sha }}', path: vmpc }
+      - name: Configureren (universal: Apple Silicon + Intel)
+        env: { VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/ }
+        run: cmake -S vmpc -B build -G Xcode -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF
+      - name: Bouwen (app, VST3, AU)
+        env: { VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/ }
+        run: |
+          for s in vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_AU; do
+            xcodebuild -quiet -project build/vmpc2000xl.xcodeproj -scheme $s -destination "generic/platform=macOS,name=Any Mac" -configuration Release CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" || exit 1
+          done
+      - name: Ad-hoc ondertekenen en inpakken
+        run: |
+          mkdir -p out/VMPC2000XL
+          A=build/vmpc2000xl_artefacts/Release
+          cp -R "$A/Standalone/VMPC2000XL.app" "$A/VST3/VMPC2000XL.vst3" "$A/AU/VMPC2000XL.component" out/VMPC2000XL/
+          for b in out/VMPC2000XL/*.app out/VMPC2000XL/*.vst3 out/VMPC2000XL/*.component; do codesign --force --deep -s - "$b"; done
+          lipo -info out/VMPC2000XL/VMPC2000XL.app/Contents/MacOS/VMPC2000XL
+          cp vmpc/LICENSE.txt out/VMPC2000XL/LICENSE-GPL3.txt
+          echo "VMPC2000XL ${{ needs.ref.outputs.version }} - broncode: https://github.com/izzyreal/vmpc-juce/tree/${{ needs.ref.outputs.sha }}" > out/VMPC2000XL/BRONCODE.txt
+          (cd out && ditto -c -k --keepParent VMPC2000XL ../VMPC2000XL-macos-universal.zip)
+      - uses: actions/upload-artifact@v4
+        with: { name: vmpc-macos, path: VMPC2000XL-macos-universal.zip }
+
+  ios:
+    needs: ref
+    runs-on: macos-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with: { repository: izzyreal/vmpc-juce, ref: '${{ needs.ref.outputs.sha }}', path: vmpc }
+      - name: Configureren (iOS)
+        env: { VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/ }
+        run: cmake -S vmpc -B build -G Xcode -Wno-dev -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF
+      - name: Bouwen (zonder ondertekening; Sideloadly/AltStore ondertekent met je Apple ID)
+        env: { VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/ }
+        run: xcodebuild -quiet -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -sdk iphoneos -destination "generic/platform=iOS" -configuration Release CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+      - name: IPA maken
+        run: |
+          APP=$(find build -path "*iphoneos*" -name "VMPC2000XL.app" -type d | head -1)
+          [ -z "$APP" ] && APP=$(find build -name "VMPC2000XL.app" -type d | grep -v macos | head -1)
+          echo "App: $APP"; test -n "$APP"
+          mkdir -p Payload && cp -R "$APP" Payload/
+          ls Payload/VMPC2000XL.app | head -20
+          zip -qry VMPC2000XL-ios-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with: { name: vmpc-ios, path: VMPC2000XL-ios-unsigned.ipa }
+
+  android:
+    needs: ref
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: app }
+      - uses: actions/checkout@v4
+        with: { repository: izzyreal/vmpc-juce, ref: '${{ needs.ref.outputs.sha }}', path: vmpc }
+      - name: Bouwomgeving (officiële Docker-image van VMPC)
+        working-directory: vmpc
+        run: docker build --tag vmpc-android -f ci/android/Dockerfile .
+      - name: APK bouwen (release, arm64)
+        working-directory: vmpc
+        run: |
+          mkdir -p /tmp/fc /tmp/cc /tmp/gradle
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e ANDROID_USER_HOME=/tmp/.android -e JAVA_TOOL_OPTIONS=-Duser.home=/tmp \
+            -e CIWI_FETCHCONTENT_SOURCES_DIR=/ciwi-fetchcontent -e GRADLE_USER_HOME=/gradle-cache \
+            -v "$PWD:/work" -v /tmp/fc:/ciwi-fetchcontent -v /tmp/gradle:/gradle-cache -w /work vmpc-android \
+            sh -c 'cd android && ./gradlew --no-daemon :app:assembleRelease'
+          ls -la android/app/build/outputs/apk/release/
+      - name: Ondertekenen (zelfde test-sleutel als MPC Touch Studio)
+        run: |
+          IN=$(ls vmpc/android/app/build/outputs/apk/release/*.apk | head -1)
+          cp app/android-signing/public-test.p12 vmpc/ks.p12; cp "$IN" vmpc/in.apk
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/vmpc:/work" -w /work vmpc-android sh -c \
+            'zipalign -p -f 4 in.apk aligned.apk && apksigner sign --ks ks.p12 --ks-pass pass:mpctouchstudio --key-pass pass:mpctouchstudio --ks-key-alias mpc --out VMPC2000XL-android-arm64.apk aligned.apk && apksigner verify VMPC2000XL-android-arm64.apk && aapt2 dump badging VMPC2000XL-android-arm64.apk | head -3'
+          mv vmpc/VMPC2000XL-android-arm64.apk .
+      - uses: actions/upload-artifact@v4
+        with: { name: vmpc-android, path: VMPC2000XL-android-arm64.apk }
+
+  release:
+    needs: [ref, windows, macos, ios, android]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: dl, pattern: 'vmpc-*', merge-multiple: true }
+      - run: ls -la dl
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: vmpc-${{ needs.ref.outputs.version }}
+          name: VMPC2000XL ${{ needs.ref.outputs.version }} (open-source MPC2000XL) voor MPC Touch Studio
+          make_latest: false
+          body: |
+            De echte open-source MPC2000XL-emulator **VMPC2000XL** (door Izmar, GPL-3.0), gebouwd uit de broncode:
+            https://github.com/izzyreal/vmpc-juce/tree/${{ needs.ref.outputs.sha }}
+
+            - **Windows**: zit in de MPC Touch Studio-installer (of los: VMPC2000XL-windows-x64.zip)
+            - **Mac**: zit in de MPC Touch Studio-Mac-app (of los: VMPC2000XL-macos-universal.zip)
+            - **Android**: VMPC2000XL-android-arm64.apk (installeren naast MPC Touch Studio)
+            - **iPhone/iPad**: VMPC2000XL-ios-unsigned.ipa — installeren met Sideloadly of AltStore en je Apple ID
+
+            Dit is geen officiële Akai-software. VMPC2000XL is vrije software onder de GNU GPL v3.
+          files: dl/*
