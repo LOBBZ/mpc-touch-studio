@@ -2,13 +2,14 @@
 /* High-end geluiden: echte opgenomen instrumenten (multi-sample, velocity-lagen) en drumkits.
    Bron: VCSL + VSCO-2-CE (CC0, ook commercieel vrij) en eigen ontworpen synth-drums — zie samples/CREDITS.txt.
    Samples worden pas geladen als je ze gebruikt en daarna offline bewaard door de service worker. */
-const HQ={manifest:null,mp:null,inst:new Map(),loading:new Map()};
+const HQ={base:'samples/',manifest:null,mp:null,inst:new Map(),loading:new Map()};
 const HQ_FALLBACK={grand:'piano',fmep:'epiano',tsax:'brass',vibes:'bell',marimba:'bell',harp:'pluck',kalimba:'bell',ensemble:'strings',pizz:'pluck',upbass:'bass',trumpet:'brass',horn:'brass',flute:'flute'};
 const HQ_GAIN={grand:2,marimba:2,harp:1.5,horn:1.3,flute:1.2,tsax:1.2,fmep:.6};
-function hqManifest(){if(!HQ.mp)HQ.mp=fetch('samples/manifest.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(m=>HQ.manifest=m).catch(e=>{HQ.mp=null;throw e});return HQ.mp}
+function hqManifest(){const get=b=>fetch(b+'manifest.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(m=>{HQ.base=b;return m});
+ if(!HQ.mp)HQ.mp=get('samples/').catch(()=>get('https://lobbz.github.io/mpc-touch-studio/samples/')).then(m=>HQ.manifest=m).catch(e=>{HQ.mp=null;throw e});return HQ.mp}
 function hqLoad(id){if(HQ.inst.has(id))return Promise.resolve(HQ.inst.get(id));if(HQ.loading.has(id))return HQ.loading.get(id);
  const p=(async()=>{const m=await hqManifest(),d=m.instruments[id];if(!d)throw Error('onbekend instrument '+id);const ac=ensureAudio();
-  const zones=await Promise.all(d.zones.map(async z=>{const r=await fetch(`samples/inst/${id}/${z.f}`);if(!r.ok)throw Error('sample ontbreekt: '+z.f);return{root:z.root,v:z.v,buf:await decode(ac,await r.arrayBuffer())}}));
+  const zones=await Promise.all(d.zones.map(async z=>{const r=await fetch(`${HQ.base}inst/${id}/${z.f}`);if(!r.ok)throw Error('sample ontbreekt: '+z.f);return{root:z.root,v:z.v,buf:await decode(ac,await r.arrayBuffer())}}));
   const vels=[...new Set(zones.map(z=>z.v))].sort((a,b)=>a-b);
   const u={id,name:d.name,mode:d.mode,release:d.release,vels,layers:vels.map(v=>zones.filter(z=>z.v===v).sort((a,b)=>a.root-b.root))};HQ.inst.set(id,u);return u})();
  HQ.loading.set(id,p);p.catch(()=>{}).finally(()=>HQ.loading.delete(id));return p}
@@ -35,7 +36,7 @@ async function hqFillKits(){const sel=$('#hq-kit');if(!sel)return;try{const m=aw
 async function hqLoadKit(kit){const m=await hqManifest(),k=m.kits[kit];if(!k)return;const b=state.activeBank;
  const used=k.pads.some((_,i)=>sampleBuffers.has(slotKey(b,i)));if(used&&!confirm(`${k.name} laden op bank ${'ABCD'[b]||b+1}? De huidige samples op deze bank worden vervangen.`))return;
  toast('Kit laden…');let n=0;
- await Promise.all(k.pads.map(async(p,i)=>{try{const r=await fetch(`samples/kits/${kit}/${p.f}`);if(!r.ok)throw 0;const f=new File([await r.blob()],p.name+'.mp3',{type:'audio/mpeg'});await loadSampleInto(b,i,f);n++}catch(e){}}));
+ await Promise.all(k.pads.map(async(p,i)=>{try{const r=await fetch(`${HQ.base}kits/${kit}/${p.f}`);if(!r.ok)throw 0;const f=new File([await r.blob()],p.name+'.mp3',{type:'audio/mpeg'});await loadSampleInto(b,i,f);n++}catch(e){}}));
  drawPads();updateSelected();drawSequencer();drawMixer();save();toast(`${k.name}: ${n} pads geladen`)}
 $('#hq-kit-load')&&($('#hq-kit-load').onclick=()=>{const v=$('#hq-kit').value;if(!v){toast('Kies eerst een kit');return}hqLoadKit(v).catch(e=>toast('Kit laden mislukt: '+e.message))});
 hqFillKits();
