@@ -4,6 +4,8 @@
 const BUILTIN_INSTS=[['piano','🎹 Piano'],['epiano','🎹 E-piano (Rhodes)'],['organ','⛪ Orgel'],['bell','🔔 Klokjes'],
  ['bass','🎸 Bass'],['sub808','🔊 808 Sub'],['guitar','🎸 Gitaar'],['pluck','✨ Pluck'],
  ['strings','🎻 Strijkers'],['pad','🌫️ Pad'],['choir','🗣️ Koor'],['brass','🎺 Brass'],['flute','🪈 Fluit'],['synth','🎛️ Synth'],['lead','⚡ Lead']];
+/* Echte opgenomen high-end instrumenten (samples/, CC0 — zie samples/CREDITS.txt) */
+BUILTIN_INSTS.unshift(['s:grand','⭐ 🎹 Steinway-vleugel'],['s:fmep','⭐ 🎹 FM E-piano (DX)'],['s:tsax','⭐ 🎷 Tenorsax'],['s:vibes','⭐ 🔔 Vibrafoon'],['s:marimba','⭐ 🪵 Marimba'],['s:harp','⭐ 🪕 Concertharp'],['s:kalimba','⭐ 🎐 Kalimba'],['s:ensemble','⭐ 🎻 Strijkersensemble'],['s:pizz','⭐ 🎻 Strijkers pizzicato'],['s:upbass','⭐ 🎸 Contrabas (jazz)'],['s:trumpet','⭐ 🎺 Trompet'],['s:horn','⭐ 📯 Hoorn'],['s:flute','⭐ 🪈 Fluit']);
 const INST_IDS=BUILTIN_INSTS.map(([k])=>k);
 
 /* osc: [golfvorm, frequentie-verhouding, detune in cent, niveau]

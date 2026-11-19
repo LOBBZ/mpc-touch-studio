@@ -218,3 +218,7 @@ Let op: via het http-adres van de bridge werkt de microfoon op iPhone niet (Safa
 
 Instellingen, patronen en de song worden in de browser bewaard (localStorage en IndexedDB), per apparaat en per browser.
 Wil je een project naar een ander apparaat meenemen? Gebruik *↓ Bewaar project* en *↑ Open project*. Eigen samples en audio-opnames zitten niet in het projectbestand: exporteer de song als WAV om je zang mee te nemen.
+
+## High-end geluiden
+13 echte opgenomen instrumenten (⭐ in de instrumentkeuze: Steinway-vleugel, FM E-piano, tenorsax, vibrafoon, marimba, harp, kalimba, strijkersensemble, pizzicato, contrabas, trompet, hoorn, fluit) en 3 drumkits (Studio Akoestisch, Trap / Hip-hop, Afro & Latin) in `www/samples/`.
+Bronnen: VCSL en VSCO-2-CE (beide CC0, ook commercieel vrij te gebruiken) plus eigen ontworpen synth-drums. Zie `www/samples/CREDITS.txt`. Opnieuw bouwen: `python3 tools/build_samples.py <VCSL> <VSCO-2-CE>`.
