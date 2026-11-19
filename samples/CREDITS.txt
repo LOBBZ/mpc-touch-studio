@@ -1,0 +1,9 @@
+MPC Touch Studio — ingebouwde klanken
+
+Opnames uit:
+- VCSL – Versilian Community Sample Library, Versilian Studios — CC0 1.0 (publiek domein)
+  https://github.com/sgossner/VCSL
+- VSCO 2 CE – Versilian Studios Chamber Orchestra 2 Community Edition — CC0 1.0 (publiek domein)
+  https://github.com/sgossner/VSCO-2-CE
+Bewerkt (ingekort, genormaliseerd, gelaagd) voor MPC Touch Studio.
+Synthese-drums (808, kicks, hats, rim, snap, perc, log drum): eigen ontwerp, Digital Ground.

@@ -53,7 +53,10 @@
       <div class="tgroup">
         <button class="btn vmpc-btn" id="vmpc-btn" aria-label="Echte MPC2000XL (VMPC2000XL)" title="Echte MPC2000XL">🎛️<span class="lbl"> MPC2000XL</span></button>
         <button class="btn br-btn" id="br-btn" aria-label="Browser met samples (Alt+F8)" title="Browser (Alt+F8)">📁<span class="lbl"> Browser</span></button>
+        <button class="btn" id="rew" aria-label="Terugspoelen (1 maat)" title="Terug (,)">⏪</button>
         <button class="btn primary" id="play">▶ Play</button>
+        <button class="btn" id="pause" aria-label="Pauze" title="Pauze">❚❚<span class="lbl"> Pauze</span></button>
+        <button class="btn" id="fwd" aria-label="Vooruitspoelen (1 maat)" title="Vooruit (.)">⏩</button>
         <button class="btn" id="stop" aria-label="Stop">■<span class="lbl"> Stop</span></button>
         <button class="btn" id="rec" aria-label="Opnemen">●<span class="lbl"> Rec</span></button>
         <button class="btn" id="metro" aria-pressed="false" aria-label="Metronoom">♩<span class="lbl"> Klik</span></button>
@@ -104,6 +107,7 @@
         <div class="field"><label>Aanslag (velocity)</label><div class="chipset" id="vel-picks"><button class="chip" data-vel="fixed">Vast</button><button class="chip" data-vel="pos">Hoogte op pad</button></div><span class="hint" id="vel-hint"></span></div>
         <div class="field"><label for="pad-name">Naam van de pad</label><input id="pad-name" maxlength="18" type="text" autocomplete="off" autocapitalize="words"></div>
         <div class="field"><label for="sample-file">Eigen sample op deze pad (WAV / MP3 / M4A / AIFF)</label><input id="sample-file" type="file" accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aif,.aiff,.caf"></div>
+        <div class="field"><label for="hq-kit">⭐ High-end kit laden (echte opnames)</label><div class="btn-row" style="margin-top:0"><select id="hq-kit" class="btn small"><option value="">Kies een kit…</option></select><button class="btn small good" id="hq-kit-load">Laden op deze bank</button></div></div>
         <div class="btn-row" style="margin-top:0"><label class="btn small good file-btn">📁 Hele kit laden (meerdere bestanden)<input id="kit-files" type="file" multiple accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aif,.aiff,.caf" hidden></label></div>
         <p class="hint" style="margin:6px 0 0">Kies tot 64 bestanden tegelijk: ze komen op naam gesorteerd op pad 1, 2, 3 … van de actieve bank en lopen door naar de volgende bank. Op de Mac kun je bestanden ook op een pad slepen.</p>
         <div id="trim-box" class="trim-box" hidden>
@@ -238,6 +242,7 @@
       <div class="panel-head"><h2>Sync, kanalen & test</h2><div class="midi-leds"><span><i id="led-out" class="mled"></i>OUT</span><span><i id="led-in" class="mled"></i>IN</span><button class="btn small" id="midi-test">♪ Testnoot</button></div></div>
       <div class="sync-grid">
         <div>
+          <label class="check"><input type="checkbox" id="show-asst"> <span><b>💬 AI-chatassistent tonen</b> — praten met de AI (eigen API-sleutel nodig). AI Mix/Master werkt altijd.</span></label>
           <label class="check"><input type="checkbox" id="clock-out"> <span><b>DAW volgt app</b> — MIDI Clock + start/stop/positie versturen</span></label>
           <label class="check"><input type="checkbox" id="clock-follow"> <span><b>App volgt DAW</b> — tempo en start/stop van je DAW overnemen</span></label>
           <div class="field"><label for="sync-in">Sync-ingang (clock van je DAW, bijv. IAC Bus 2)</label><select id="sync-in"><option value="">Schakel eerst Web MIDI in</option></select></div>
@@ -327,6 +332,7 @@
 <script src="js/touchfx.js"></script>
 <script src="js/automation.js"></script>
 <script src="js/browser.js"></script>
+<script src="js/hqsounds.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

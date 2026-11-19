@@ -342,7 +342,7 @@ function toggleMetro(){state.metro=!state.metro;updateTransport();save()}
 /* ---------- Klavier ---------- */
 const activeSynth=new Map();
 /* Eén synth-stem; werkt live én offline (WAV-export). release(t) mag in de toekomst liggen. */
-function makeVoice(c,dest,note,vel,at,inst){if(typeof inst==='string'&&inst.startsWith('u:')){const v=makeSamplerVoice(c,dest,note,vel,at,inst);if(v)return v;inst='piano'}if(SYNTH_PRESETS[inst])return presetVoice(c,dest,note,vel,at,SYNTH_PRESETS[inst]);const f=440*2**((note-69)/12);
+function makeVoice(c,dest,note,vel,at,inst){if(typeof inst==='string'&&inst.startsWith('s:')){const v=typeof hqVoice==='function'&&hqVoice(c,dest,note,vel,at,inst);if(v)return v;inst=hqFallback(inst)}if(typeof inst==='string'&&inst.startsWith('u:')){const v=makeSamplerVoice(c,dest,note,vel,at,inst);if(v)return v;inst='piano'}if(SYNTH_PRESETS[inst])return presetVoice(c,dest,note,vel,at,SYNTH_PRESETS[inst]);const f=440*2**((note-69)/12);
  const out=c.createGain();out.gain.value=0;
  const filt=c.createBiquadFilter();filt.type='lowpass';filt.frequency.value=inst==='bass'?900:inst==='synth'?3200:inst==='guitar'?2600:5200;filt.Q.value=inst==='synth'?4:.7;
  out.connect(filt);filt.connect(dest);
